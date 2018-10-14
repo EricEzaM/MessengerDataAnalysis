@@ -10,11 +10,11 @@ var selectedFile = document.getElementById("openFile"); // choose file button
 var submitButton = document.getElementById("submitFile"); // submit button
 var testTextOutput = document.getElementById("info"); // info <p> to insert test data into
 
-var wordsMin = document.getElementById("wordsMin")
-var wordsMax = document.getElementById("wordsMax")
+var wordsMin = document.getElementById("wordsMin");
+var wordsMax = document.getElementById("wordsMax");
 
-var messagesByDay = document.getElementById("messagesByDay")
-var messagesHistory = document.getElementById("messagesHistory")
+var messagesByDay = document.getElementById("messagesByDay");
+var messagesHistory = document.getElementById("messagesHistory");
 
 var docStatus = document.getElementById("status");
 
@@ -29,12 +29,12 @@ var wordSearch_minLength = 1;
 var wordSearch_maxLength = 99;
 var wordSearch_displayCount = 15;
 
-var messageTimeDisplay = "Hours" // round to ["Hours", "10 Minute Blocks"] 
+var messageTimeDisplay = "Hours"; // round to ["Hours", "10 Minute Blocks"] 
 var history_ChartDisplay = "Day"; // "Day" "Month"
 
 var conversation = {};
 
-var modal = document.getElementById("exampleModal")
+var modal = document.getElementById("exampleModal");
 
 // When the submit button is pressed, this starts the whole analysis process.
 submitButton.addEventListener("click", function(){
@@ -47,12 +47,12 @@ submitButton.addEventListener("click", function(){
     wordSearch_minLength = parseInt(document.getElementById("wordsMin").value);
     wordSearch_maxLength = parseInt(document.getElementById("wordsMax").value);
 
-    messageTimeDisplay = document.getElementById("messagesByDay").options[document.getElementById("messagesByDay").selectedIndex].value
-    history_ChartDisplay = document.getElementById("messagesHistory").options[document.getElementById("messagesHistory").selectedIndex].value
+    messageTimeDisplay = document.getElementById("messagesByDay").options[document.getElementById("messagesByDay").selectedIndex].value;
+    history_ChartDisplay = document.getElementById("messagesHistory").options[document.getElementById("messagesHistory").selectedIndex].value;
 
-    document.getElementById("emojiTableDiv").innerHTML = `<table id="emojiTable" class="table-sm table-striped table-bordered text-center"><tr id="headerRow" class="thead-light"><th>Rank</th><th>Emoji</th></tr></table>`
+    document.getElementById("emojiTableDiv").innerHTML = `<table id="emojiTable" class="table-sm table-striped table-bordered text-center"><tr id="headerRow" class="thead-light"><th>Rank</th><th>Emoji</th></tr></table>`;
 
-    document.getElementById("participantWordInfoTable").innerHTML = `<tr id="infoHeaderRow" class="thead-light"><th class="px-2">Name</th><th class="px-2">Messages Sent</th><th class="px-2">Words Sent</th><th class="px-2">Average Words/message</th></tr>`
+    document.getElementById("participantWordInfoTable").innerHTML = `<tr id="infoHeaderRow" class="thead-light"><th class="px-2">Name</th><th class="px-2">Messages Sent</th><th class="px-2">Words Sent</th><th class="px-2">Average Words/message</th></tr>`;
 
     // new file reader
     var fr = new FileReader();
@@ -60,7 +60,7 @@ submitButton.addEventListener("click", function(){
     fr.onload = function(){
         JSONstring = JSON.parse(this.result);
 
-        analyseAndPlot(JSONstring)
+        analyseAndPlot(JSONstring);
     }
     fr.readAsText(selectedFile.files[0]);
 });
@@ -92,15 +92,12 @@ function analyseAndPlot(json){
             dataStructureInitialize(message.sender_name)
             conversation[message.sender_name]["messagesSent"] += 1;
 
-            participantsList.push(message.sender_name)
-            participantsListTrue.push(message.sender_name)
-
-            console.log(`An error was caught when adding 1 to the participants messages sent count. It is likely that this participant was deleted from the conversation, and thus did not appear in the participants list. They (${message.sender_name}) have now been added. The full error is shown below.`)
-            console.log(error)
+            participantsList.push(message.sender_name);
+            participantsListTrue.push(message.sender_name);
         }
         
         // get the message time information from the timestamp
-        var messageTimeInformation = messageTimeAnalysis(message.timestamp_ms)
+        var messageTimeInformation = messageTimeAnalysis(message.timestamp_ms);
 
         // add to person-specfic data in the participant data
         objectAddNewValueOrIncrement(conversation[message.sender_name]["timedata"]["day"], messageTimeInformation.day);
@@ -117,41 +114,41 @@ function analyseAndPlot(json){
         objectAddNewValueOrIncrement(conversation["Conversation Totals"]["timedata"]["fulldate"], messageTimeInformation.fulldate);
 
         // message content type, added to person-specific and overall conversation data
-        var thisMessageContentType = messageContentTypeAnalysis(message)
+        var thisMessageContentType = messageContentTypeAnalysis(message);
         objectAddNewValueOrIncrement(conversation[message.sender_name]["messageContentType"], thisMessageContentType);
         objectAddNewValueOrIncrement(conversation["Conversation Totals"]["messageContentType"], thisMessageContentType);
 
         // get count of words and emojis used, added to person-specific and overall conversation data
         if (message.content) {
-            var wordsEmojisAndWordCount = messageContentAnalysis(decodeURIComponent(escape(message.content)))
+            var wordsEmojisAndWordCount = messageContentAnalysis(decodeURIComponent(escape(message.content)));
 
             wordsEmojisAndWordCount.messageWordsFiltered.forEach(word => {
-                objectAddNewValueOrIncrement(conversation[message.sender_name]["words"], word)
-                objectAddNewValueOrIncrement(conversation["Conversation Totals"]["words"], word)
+                objectAddNewValueOrIncrement(conversation[message.sender_name]["words"], word);
+                objectAddNewValueOrIncrement(conversation["Conversation Totals"]["words"], word);
             })
 
             wordsEmojisAndWordCount.messageEmojisSent.forEach(emoji => {
                 
-                objectAddNewValueOrIncrement(conversation[message.sender_name]["emojis"], emoji)
-                objectAddNewValueOrIncrement(conversation["Conversation Totals"]["emojis"], emoji)
+                objectAddNewValueOrIncrement(conversation[message.sender_name]["emojis"], emoji);
+                objectAddNewValueOrIncrement(conversation["Conversation Totals"]["emojis"], emoji);
             })
 
-            objectAddNewValueOrIncrement(conversation[message.sender_name]["messageLength"], wordsEmojisAndWordCount.messageLength)
-            objectAddNewValueOrIncrement(conversation["Conversation Totals"]["messageLength"], wordsEmojisAndWordCount.messageLength)
+            objectAddNewValueOrIncrement(conversation[message.sender_name]["messageLength"], wordsEmojisAndWordCount.messageLength);
+            objectAddNewValueOrIncrement(conversation["Conversation Totals"]["messageLength"], wordsEmojisAndWordCount.messageLength);
         }
     });
     
     // sort the words and emojis used by each participant by frequency
     participantsList.forEach(participant => {
-        conversation[participant]["wordsOrdered"] = sortMessageContentByFrequency(conversation[participant]["words"])
-        conversation[participant]["emojisOrdered"] = sortMessageContentByFrequency(conversation[participant]["emojis"])
+        conversation[participant]["wordsOrdered"] = sortMessageContentByFrequency(conversation[participant]["words"]);
+        conversation[participant]["emojisOrdered"] = sortMessageContentByFrequency(conversation[participant]["emojis"]);
     });
 
-    console.log(conversation)
+    console.log(conversation);
 
     docStatus.innerText = "Analysis Complete! If you like, change some settings and press start again or select a new file.";
-    docStatus.classList.remove("alert-warning")
-    docStatus.classList.add("alert-success")
+    docStatus.classList.remove("alert-warning");
+    docStatus.classList.add("alert-success");
     document.getElementById("waitMessage").setAttribute("hidden", true);
     document.getElementById("charts").removeAttribute("hidden");
     document.getElementById("chartToggles").removeAttribute("hidden");
@@ -161,7 +158,7 @@ function analyseAndPlot(json){
     <strong>Total Words </strong>: ${sumObjectValues(conversation["Conversation Totals"]["words"])} <br> 
     <strong>Unique Words </strong>: ${Object.keys(conversation["Conversation Totals"]["words"]).length} <br>
     <strong>Total Emojis </strong>: ${sumObjectValues(conversation["Conversation Totals"]["emojis"])} <br> 
-    <strong>Unique Emojis </strong>: ${Object.keys(conversation["Conversation Totals"]["emojis"]).length} <br>` 
+    <strong>Unique Emojis </strong>: ${Object.keys(conversation["Conversation Totals"]["emojis"]).length} <br>`;
 
     participantsListTrue.forEach(participant => {
 
@@ -173,12 +170,12 @@ function analyseAndPlot(json){
         var totalMessages = conversation["Conversation Totals"]["messagesSent"];
         var totalWords = sumObjectValues(conversation["Conversation Totals"]["words"]);
 
-        var messagesPCT = (partMessagesSent/totalMessages*100).toFixed(2)
-        var wordsPCT = (partWordsSent/totalWords*100).toFixed(2)
+        var messagesPCT = (partMessagesSent/totalMessages*100).toFixed(2);
+        var wordsPCT = (partWordsSent/totalWords*100).toFixed(2);
 
-        var rowHTML = (`<td>${participant}</td><td>${partMessagesSent}</td><td>${partWordsSent}</td><td>${(partWordsSent/partMessagesSent).toFixed(2)}</td>`)
+        var rowHTML = (`<td>${participant}</td><td>${partMessagesSent}</td><td>${partWordsSent}</td><td>${(partWordsSent/partMessagesSent).toFixed(2)}</td>`);
 
-        participantWordInfoTable.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`)
+        participantWordInfoTable.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`);
     });
 
     drawDayChart();
@@ -192,7 +189,7 @@ function analyseAndPlot(json){
     drawMessagesSentChart();
     drawWordsSentChart();
     
-    document.getElementById("analysisStartDiv").scrollIntoView(true)
+    document.getElementById("analysisStartDiv").scrollIntoView(true);
 }
 
 function participantsInitilize(participants){
@@ -200,13 +197,13 @@ function participantsInitilize(participants){
         participantsList.push(participant.name);
     });
 
-    participantsList.push("Conversation Totals")
+    participantsList.push("Conversation Totals");
 }
 
 function dataStructureInitialize(participant){
-    conversation[participant] = {}
+    conversation[participant] = {};
     conversation[participant]["messagesSent"] = 0;
-    conversation[participant]["timedata"] = {}        
+    conversation[participant]["timedata"] = {};    
 
     conversation[participant]["timedata"]["day"] = new Object();
     conversation[participant]["timedata"]["month"] = new Object();
@@ -246,7 +243,7 @@ function messageTimeAnalysis(timestamp) {
     // Full Time - set hours of day to zero so that each message only has date information
     timeData["fulldate"] = new Date(timestamp).setHours(1,0,0,0);
 
-    return timeData
+    return timeData;
 }
 
 function messageTimeAnalyisMinutesRounder(minutes){
@@ -259,42 +256,42 @@ function messageTimeAnalyisMinutesRounder(minutes){
         }
     }
     else if (messageTimeDisplay == "Hours") {
-        minutesRounded = "00"
+        minutesRounded = "00";
     }
     return minutesRounded;
 }
 
 function messageContentTypeAnalysis(message){
     if (message.sticker) {
-        return "Stickers"
+        return "Stickers";
     }
     else if (message.videos) {
-        return "Videos"
+        return "Videos";
     }
     else if (message.photos) {
-        return "Photos"
+        return "Photos";
     }
     else if (message.content) {
-        return "Text Messages"
+        return "Text Messages";
     }
     else if (message.files) {
-        return "Files"
+        return "Files";
     }
     else if (message.gifs) {
-        return "GIFs"
+        return "GIFs";
     }
     else if (message.share || message.type == "Share") {
-        return "Shared Links"
+        return "Shared Links";
     }
     else if (message.audio_files) {
-        return "Audio Files"
+        return "Audio Files";
     }
     else if (message.plan) {
-        return "Plan (linked date/time)"
+        return "Plan (linked date/time)";
     }
     else{
-        console.log(message)
-        return "Link to External Site"
+        console.log(message);
+        return "Link to External Site";
     }
 }
 
@@ -302,7 +299,7 @@ function messageContentAnalysis(content){
 
     // facebooks emoticons shortcuts (only used for old messages)
     // <(")
-    fixedContent = content.replace( /( :\))/g, " 🙂 ").replace(/( <\("\))/g, " 🐧 ").replace(/( :\()/g, " 😞 ").replace(/( :\/)/g, " 😕 ").replace(/( :P)/g, " 😛 ").replace(/ :D/g, " 😀 ").replace(/ :o/g, " 😮 ").replace(/ ;\)/g, " 😉 " ).replace(/ B-\)/g, " 😎 ").replace(/ >:\(/g, " 😠 ").replace(/ :'\(/g, " 😢 ").replace(/ 3:\)/g, " 😈 ").replace(/ O:\)/gi, " 😇 ").replace(/ :\*/g, " 😗 ").replace(/<3/g, " ❤ ").replace(/\^_\^/g, " 😊 ").replace(/-_-/g, " 😑 ").replace(/ >:O/gi, " 😠 ").replace(/\(y\)/gi, " 👍 ")
+    fixedContent = content.replace( /( :\))/g, " 🙂 ").replace(/( <\("\))/g, " 🐧 ").replace(/( :\()/g, " 😞 ").replace(/( :\/)/g, " 😕 ").replace(/( :P)/g, " 😛 ").replace(/ :D/g, " 😀 ").replace(/ :o/g, " 😮 ").replace(/ ;\)/g, " 😉 " ).replace(/ B-\)/g, " 😎 ").replace(/ >:\(/g, " 😠 ").replace(/ :'\(/g, " 😢 ").replace(/ 3:\)/g, " 😈 ").replace(/ O:\)/gi, " 😇 ").replace(/ :\*/g, " 😗 ").replace(/<3/g, " ❤ ").replace(/\^_\^/g, " 😊 ").replace(/-_-/g, " 😑 ").replace(/ >:O/gi, " 😠 ").replace(/\(y\)/gi, " 👍 ");
 
     // uses regex to replace certain patterns. All punctuation, including space-apostrophe/apostrophe-space patterns.
     var messageContent = fixedContent.toLowerCase().replace(/['"]\s+/g,'').replace(/\s+['"]/g,'').replace(/[.,/\\#!$%^&*;:{}=\-_`"~()[\]@?+><]/g,'').replace(/\s+/g,' ').split(' ');
@@ -312,39 +309,39 @@ function messageContentAnalysis(content){
     // ~~~~~ WORDS ~~~~~
 
     // Match anthing that DOES CONTAIN an alphanumeric character or apostrophe. 
-    var messageWordsUnfiltered = messageContent.filter(n => n.match(/[\w‘’“”']/g))
+    var messageWordsUnfiltered = messageContent.filter(n => n.match(/[\w‘’“”']/g));
     // this unfiltered list will still contain words that have emojis at the start/end with no space in between. Remove the emojis so just the word is left.
-    var messageWordsFiltered = []
+    var messageWordsFiltered = [];
     messageWordsUnfiltered.forEach(word => {
-        messageWordsFiltered.push(word.replace(/[^\w‘’“”']/g,''))
+        messageWordsFiltered.push(word.replace(/[^\w‘’“”']/g,''));
     })
     // remove empty entries, if there are any. 
-    messageWordsFiltered = messageWordsFiltered.filter(function(e){return e})
+    messageWordsFiltered = messageWordsFiltered.filter(function(e){return e});
 
     // ~~~~~ EMOJIS ~~~~~
 
     // match anything that contains something that IS NOT an alphanumeric charater or apostophe
-    var messageAllEmojis = messageContent.filter(n => n.match(/[^\w‘’“”']/g))
+    var messageAllEmojis = messageContent.filter(n => n.match(/[^\w‘’“”']/g));
     // array used to store INDIVIDUAL emojis sent. Eg 3 hearts in a row become 3 induvidual hearts
     var messageEmojisSent = [];
     // use emoji splitter tool to split by emojis. 
     var splitter = new GraphemeSplitter();
     messageAllEmojis.forEach(word => {
         // split emojis and other characters
-        var splitwords = splitter.splitGraphemes(word)
+        var splitwords = splitter.splitGraphemes(word);
         // remove other characters, only leaving emojis
-        splitWordsAndEmojis = splitwords.filter(n => n.match(/[^\w‘’“”']/g))
+        splitWordsAndEmojis = splitwords.filter(n => n.match(/[^\w‘’“”']/g));
         // add them to the emoji list
         splitWordsAndEmojis.forEach(emoji => {
 
             if (escape(unescape(encodeURIComponent(emoji))).match(/%E2%9D%A4/gi)) {
-                emoji = "❤"
+                emoji = "❤";
             }
             messageEmojisSent.push(emoji);
         }) 
     })
 
-    return {messageWordsFiltered, messageEmojisSent, messageLength}
+    return {messageWordsFiltered, messageEmojisSent, messageLength};
 }
 
 function sortMessageContentByFrequency(content){
@@ -356,8 +353,8 @@ function sortMessageContentByFrequency(content){
 
 // %%%%% PLOTTING %%%%%
 
-graphWidth = document.getElementById("allContainer").offsetWidth*0.75
-graphHeight = document.getElementById("allContainer").offsetWidth*0.5
+graphWidth = document.getElementById("allContainer").offsetWidth*0.75;
+graphHeight = document.getElementById("allContainer").offsetWidth*0.5;
 titleFontSize = 18;
 
 commonChartArea = {width: '100%', height: '80%', left:'10%'};
@@ -478,14 +475,13 @@ var historicalOptions =   {title:"Messages by All Time",
                     },
                     textStyle:{
                         fontSize: 10,
-                    }
-                    }
+                    }}
 };
 
 function drawHistoricalChart() {
     historicalData = setTimeData("fulldate");
 
-    var datesOb = conversation["Conversation Totals"]["timedata"]["fulldate"]
+    var datesOb = conversation["Conversation Totals"]["timedata"]["fulldate"];
     var maxDateTS = parseInt(Object.keys(datesOb)[0]);
     var minDateTS = parseInt(Object.keys(datesOb)[Object.keys(datesOb).length-1]);
 
@@ -495,8 +491,8 @@ function drawHistoricalChart() {
     defaultMinDate = minDate;
     defaultMaxDate = maxDate;
 
-    historicalOptions.hAxis.viewWindow.min = minDate
-    historicalOptions.hAxis.viewWindow.max = maxDate
+    historicalOptions.hAxis.viewWindow.min = minDate;
+    historicalOptions.hAxis.viewWindow.max = maxDate;
 
     document.getElementById("histMin").value = formatDate(minDate);
     document.getElementById("histMax").value = formatDate(maxDate);
@@ -505,11 +501,11 @@ function drawHistoricalChart() {
 }
 
 function histChangeXAxisBounds() {
-    var minDate = document.getElementById("histMin").value.split('-')
-    var maxDate = document.getElementById("histMax").value.split('-')
+    var minDate = document.getElementById("histMin").value.split('-');
+    var maxDate = document.getElementById("histMax").value.split('-');
     
-    historicalOptions.hAxis.viewWindow.min = new Date(parseInt(minDate[0]), parseInt(minDate[1]), parseInt(minDate[2]))
-    historicalOptions.hAxis.viewWindow.max = new Date(parseInt(maxDate[0]), parseInt(maxDate[1]), parseInt(maxDate[2]))
+    historicalOptions.hAxis.viewWindow.min = new Date(parseInt(minDate[0]), parseInt(minDate[1]), parseInt(minDate[2]));
+    historicalOptions.hAxis.viewWindow.max = new Date(parseInt(maxDate[0]), parseInt(maxDate[1]), parseInt(maxDate[2]));
 
     historicalChart.draw(historicalData, historicalOptions);
 }
@@ -529,33 +525,33 @@ function setTimeData(timeToAnalyse) {
     var plotData = new google.visualization.DataTable();
 
     if (timeToAnalyse == "day") {
-        timeArray = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]        
+        timeArray = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];       
 
         // adds rows and cols to datatable
 
         addStandardColumns();
-        dayMonthAnalysis()
+        dayMonthAnalysis();
     }
     else if (timeToAnalyse == "month"){
         timeArray = ["January","February","March","April","May","June","July",
         "August","September","October","November","December"];
 
         addStandardColumns();
-        dayMonthAnalysis()
+        dayMonthAnalysis();
     }
     else if (timeToAnalyse == "year"){
         addStandardColumns();
-        yearAnalysis()
+        yearAnalysis();
     }
     else if (timeToAnalyse == "time"){
 
-        plotData.addColumn('timeofday', timeToAnalyse)
+        plotData.addColumn('timeofday', timeToAnalyse);
 
         participantsListTrue.forEach(participant =>{
-            plotData.addColumn('number', participant)
+            plotData.addColumn('number', participant);
         })
 
-        timeAnalysis() // time is the only thing left
+        timeAnalysis(); // time is the only thing left
     }
     else { // fulldate
         plotData.addColumn('date', "Date");
@@ -569,10 +565,10 @@ function setTimeData(timeToAnalyse) {
 
     function dayMonthAnalysis() {
         for (let index = 0; index < timeArray.length; index++) {
-            var newRow = [timeArray[index]]
+            var newRow = [timeArray[index]];
     
             for (let j = 0; j < participantsListTrue.length; j++) {
-                newRow[j+1] = conversation[participantsListTrue[j]]["timedata"][timeToAnalyse][index]
+                newRow[j+1] = conversation[participantsListTrue[j]]["timedata"][timeToAnalyse][index];
             }
     
             plotData.addRow(newRow);
@@ -583,10 +579,10 @@ function setTimeData(timeToAnalyse) {
         var validYears = Object.keys(conversation["Conversation Totals"]["timedata"][timeToAnalyse]);
         
         validYears.forEach(year => {
-            var newRow = [year]
+            var newRow = [year];
     
             for (let j = 0; j < participantsListTrue.length; j++) {
-                newRow[j+1] = conversation[participantsListTrue[j]]["timedata"][timeToAnalyse][year]
+                newRow[j+1] = conversation[participantsListTrue[j]]["timedata"][timeToAnalyse][year];
             }
 
             plotData.addRow(newRow);
@@ -594,16 +590,16 @@ function setTimeData(timeToAnalyse) {
     }
 
     function timeAnalysis(){
-        var validTimes = Object.keys(conversation["Conversation Totals"]["timedata"][timeToAnalyse])
+        var validTimes = Object.keys(conversation["Conversation Totals"]["timedata"][timeToAnalyse]);
 
         validTimes.forEach(time => {
-            hours = Number(String(time).split(':')[0])
-            mins =  Number(String(time).split(':')[1])
+            hours = Number(String(time).split(':')[0]);
+            mins =  Number(String(time).split(':')[1]);
 
-            var newRow = [[hours, mins, 0]]
+            var newRow = [[hours, mins, 0]];
 
             for (let j = 0; j < participantsListTrue.length; j++) {
-                newRow[j+1] = conversation[participantsListTrue[j]]["timedata"][timeToAnalyse][time]
+                newRow[j+1] = conversation[participantsListTrue[j]]["timedata"][timeToAnalyse][time];
             }
 
             plotData.addRow(newRow);
@@ -611,26 +607,26 @@ function setTimeData(timeToAnalyse) {
     }
 
     function fulldateAnalysis(){
-        var validDates = Object.keys(conversation["Conversation Totals"]["timedata"][timeToAnalyse])
+        var validDates = Object.keys(conversation["Conversation Totals"]["timedata"][timeToAnalyse]);
 
         validDates.forEach(date =>{
 
-            var newRow = []
+            var newRow = [];
 
             if (history_ChartDisplay == "Day") {
-                newRow.push(new Date(Number(date)))
+                newRow.push(new Date(Number(date)));
 
                 for (let j = 0; j < participantsListTrue.length; j++) {
-                    newRow[j+1] = conversation[participantsListTrue[j]]["timedata"][timeToAnalyse][date]
+                    newRow[j+1] = conversation[participantsListTrue[j]]["timedata"][timeToAnalyse][date];
                 }
 
             }
             else{
-                var monthOnly = new Date(Number(date))
-                monthOnly.setDate(1)
-                monthOnly.setHours(12, 0, 0, 0)
+                var monthOnly = new Date(Number(date));
+                monthOnly.setDate(1);
+                monthOnly.setHours(12, 0, 0, 0);
 
-                newRow.push(monthOnly)
+                newRow.push(monthOnly);
 
                 for (let j = 0; j < participantsListTrue.length; j++) {
 
@@ -638,12 +634,12 @@ function setTimeData(timeToAnalyse) {
                     
                     var allFullDateData = conversation[participantsListTrue[j]]["timedata"][timeToAnalyse];
     
-                    for (const key in allFullDateData) {
+                    for (var key in allFullDateData) {
     
                         if (allFullDateData.hasOwnProperty(key)) {
     
-                            if ((new Date(Number(date)).getMonth() == new Date(Number(key)).getMonth()) && (new Date(Number(date)).getFullYear() == new Date(Number(key)).getFullYear())) {
-                                sum += allFullDateData[key]
+                            if((new Date(Number(date)).getMonth() == new Date(Number(key)).getMonth()) && (new Date(Number(date)).getFullYear() == new Date(Number(key)).getFullYear())) {
+                                sum += allFullDateData[key];
                             }
                         }
                     }
@@ -657,10 +653,10 @@ function setTimeData(timeToAnalyse) {
     }
 
     function addStandardColumns(){
-        plotData.addColumn('string', timeToAnalyse)
+        plotData.addColumn('string', timeToAnalyse);
 
         participantsListTrue.forEach(participant =>{
-            plotData.addColumn('number', participant)
+            plotData.addColumn('number', participant);
         })
     }
 
@@ -687,8 +683,8 @@ var msgLengthOptions = {title:"Messages by length (words)",
 };
 
 function msgLengthChangeXAxisBounds() {
-    msgLengthOptions.hAxis.viewWindow.min = parseInt(document.getElementById("msgLengthMin").value)
-    msgLengthOptions.hAxis.viewWindow.max = parseInt(document.getElementById("msgLengthMax").value)
+    msgLengthOptions.hAxis.viewWindow.min = parseInt(document.getElementById("msgLengthMin").value);
+    msgLengthOptions.hAxis.viewWindow.max = parseInt(document.getElementById("msgLengthMax").value);
 
     msgLengthChart.draw(msgLengthData, msgLengthOptions);
 }
@@ -704,18 +700,18 @@ function resetMsgLengthRange() {
 function drawMsgLengthChart() {
     msgLengthData = new google.visualization.DataTable();
 
-    msgLengthData.addColumn('number', 'Length')
+    msgLengthData.addColumn('number', 'Length');
     participantsListTrue.forEach(participant =>{
-        msgLengthData.addColumn('number', participant)
+        msgLengthData.addColumn('number', participant);
     })
 
     validLengths = Object.keys(conversation["Conversation Totals"]["messageLength"]);
 
     validLengths.forEach(length => {
-        var newRow = [parseInt(length)]
+        var newRow = [parseInt(length)];
 
         for (let j = 0; j < participantsListTrue.length; j++) {
-            newRow[j+1] = conversation[participantsListTrue[j]]["messageLength"][length]
+            newRow[j+1] = conversation[participantsListTrue[j]]["messageLength"][length];
         }
 
         msgLengthData.addRow(newRow);
@@ -746,23 +742,23 @@ var wordOptions = {title:"Words by Frequency",
 function drawWordChart() {
     wordData = new google.visualization.DataTable();
 
-    wordData.addColumn('string', 'Word')
+    wordData.addColumn('string', 'Word');
     participantsListTrue.forEach(participant =>{
-        wordData.addColumn('number', participant)
+        wordData.addColumn('number', participant);
     })
 
     var wordsAdded = 0;
 
-    for (const word of conversation["Conversation Totals"]["wordsOrdered"]) {
+    for (var word of conversation["Conversation Totals"]["wordsOrdered"]) {
         if (word.length >= wordSearch_minLength && word.length <= wordSearch_maxLength) {
 
-            var newRow = [word]
+            var newRow = [word];
 
             for (let j = 0; j < participantsListTrue.length; j++) {
-                newRow[j+1] = conversation[participantsListTrue[j]]["words"][word]
-            }
+                var count = conversation[participantsListTrue[j]]["words"][word];
 
-            // var countOfWord = conversation["Conversation Totals"]["words"][word];
+                newRow[j+1] = count;
+            }
 
             wordData.addRow(newRow);
 
@@ -799,110 +795,39 @@ function drawEmojiChart() {
     
     emojiData = new google.visualization.DataTable();
 
-    emojiData.addColumn('string', 'Emoji')
+    emojiData.addColumn('string', 'Emoji');
     participantsListTrue.forEach(participant =>{
-        emojiData.addColumn('number', participant)
+        emojiData.addColumn('number', participant);
 
-        headerRow.insertAdjacentHTML('beforeend', `<th>${participant}</th>`)
+        headerRow.insertAdjacentHTML('beforeend', `<th>${participant}</th>`);
     })
 
     var emojisAdded = 0;
 
-    for (const emoji of conversation["Conversation Totals"]["emojisOrdered"]) {
-        var newRow = [emojione.toImage(emoji)]
+    for (var emoji of conversation["Conversation Totals"]["emojisOrdered"]) {
+        var newRow = [emojione.toImage(emoji)];
 
         for (let j = 0; j < participantsListTrue.length; j++) {
-            newRow[j+1] = conversation[participantsListTrue[j]]["emojis"][emoji]
+            newRow[j+1] = conversation[participantsListTrue[j]]["emojis"][emoji];
         }
 
         // Table Construction
 
-        newRow.unshift(emojisAdded)
-        newRow[0] = newRow[0]+1
+        newRow.unshift(emojisAdded);
+        newRow[0] = newRow[0]+1;
 
-        var rowHTML = ""
-
-        newRow.forEach(element => {
-            try {
-                rowHTML += ("<td>" + element.toString() + "</td>")
-            } catch (error) {
-                console.log("Error found in emoji table creation. Replacing troublesome element with 'N/A'. Error details: \n" + error)
-                rowHTML += ("<td>" + "None!" + "</td>")
-            }
-        });
-
-        emojiTable.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`)
-
-        //
-        
-        newRow.splice(1,1);
-        newRow[0] = "Rank " + newRow[0];
-        emojiData.addRow(newRow);
-
-        emojisAdded++;
-
-        if (emojisAdded >= wordSearch_displayCount) {
-            break;
-        }
-    }
-
-    // emojiData.setColumnProperties(0, 'role', 'annotation') 
-
-    emojiChart.draw(emojiData, emojiOptions);
-}
-
-var emojiOptions = {title:"Emojis by Frequency",
-                width: graphWidth,
-                height: graphHeight,
-                vAxis:{minValue: 0},
-                isStacked: true,
-                chartArea: commonChartArea,
-                legend: {position: 'bottom', alignment: 'start'},
-                titleTextStyle: {
-                    fontSize: titleFontSize,
-                }
-};
-
-function drawEmojiChart() {
-    var emojiTable = document.getElementById("emojiTable");
-
-    var headerRow = document.getElementById("headerRow");
-    
-    emojiData = new google.visualization.DataTable();
-
-    emojiData.addColumn('string', 'Emoji')
-    participantsListTrue.forEach(participant =>{
-        emojiData.addColumn('number', participant)
-
-        headerRow.insertAdjacentHTML('beforeend', `<th>${participant}</th>`)
-    })
-
-    var emojisAdded = 0;
-
-    for (const emoji of conversation["Conversation Totals"]["emojisOrdered"]) {
-        var newRow = [emojione.toImage(emoji)]
-
-        for (let j = 0; j < participantsListTrue.length; j++) {
-            newRow[j+1] = conversation[participantsListTrue[j]]["emojis"][emoji]
-        }
-
-        // Table Construction
-
-        newRow.unshift(emojisAdded)
-        newRow[0] = newRow[0]+1
-
-        var rowHTML = ""
+        var rowHTML = "";
 
         newRow.forEach(element => {
             try {
-                rowHTML += ("<td>" + element.toString() + "</td>")
+                rowHTML += ("<td>" + element.toString() + "</td>");
             } catch (error) {
-                console.log("Error found in emoji table creation. Replacing troublesome element with 'N/A'. Error details: \n" + error)
-                rowHTML += ("<td>" + "None!" + "</td>")
+                console.log("Error found in emoji table creation. Replacing troublesome element with 'N/A'. Error details: \n" + error);
+                rowHTML += ("<td>" + "None!" + "</td>");
             }
         });
 
-        emojiTable.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`)
+        emojiTable.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`);
 
         //
         
@@ -937,13 +862,13 @@ var messagesSentOptions = {title:"Messages Sent",
 function drawMessagesSentChart() {
     messagesSentData = new google.visualization.DataTable();
 
-    messagesSentData.addColumn('string', 'Person')
-    messagesSentData.addColumn('number', 'Messages Sent')
+    messagesSentData.addColumn('string', 'Person');
+    messagesSentData.addColumn('number', 'Messages Sent');
 
     participantsListTrue.forEach(participant => {
         var partMessagesSent = conversation[participant]["messagesSent"];
 
-        messagesSentData.addRow([participant, partMessagesSent])
+        messagesSentData.addRow([participant, partMessagesSent]);
     });
 
     messageSentChart.draw(messagesSentData, messagesSentOptions);
@@ -964,13 +889,13 @@ var wordsSentOptions = {title:"Words Sent",
 function drawWordsSentChart() {
     wordsSentData = new google.visualization.DataTable();
 
-    wordsSentData.addColumn('string', 'Person')
-    wordsSentData.addColumn('number', 'Words Sent')
+    wordsSentData.addColumn('string', 'Person');
+    wordsSentData.addColumn('number', 'Words Sent');
 
     participantsListTrue.forEach(participant => {
         var partWordsSent = sumObjectValues(conversation[participant]["words"]);
 
-        wordsSentData.addRow([participant, partWordsSent])
+        wordsSentData.addRow([participant, partWordsSent]);
     });
 
     wordsSentChart.draw(wordsSentData, wordsSentOptions);
@@ -979,14 +904,14 @@ function drawWordsSentChart() {
 // Changing chart style
 
 function normalStackedCharts() {
-    isStackedCheck(dayOptions)
-    isStackedCheck(monthOptions)
-    isStackedCheck(yearOptions)
-    isStackedCheck(timeOptions)
-    isStackedCheck(historicalOptions)
-    isStackedCheck(wordOptions)
-    isStackedCheck(emojiOptions)
-    isStackedCheck(msgLengthOptions)
+    isStackedCheck(dayOptions);
+    isStackedCheck(monthOptions);
+    isStackedCheck(yearOptions);
+    isStackedCheck(timeOptions);
+    isStackedCheck(historicalOptions);
+    isStackedCheck(wordOptions);
+    isStackedCheck(emojiOptions);
+    isStackedCheck(msgLengthOptions);
 
     function isStackedCheck(options) {
         if (options.isStacked != true) {
@@ -998,21 +923,21 @@ function normalStackedCharts() {
     monthChart.draw(monthData, monthOptions);
     yearChart.draw(yearData, yearOptions);
     timeChart.draw(timeData, timeOptions);
-    historicalChart.draw(historicalData, historicalOptions)
+    historicalChart.draw(historicalData, historicalOptions);
     wordChart.draw(wordData, wordOptions);
     emojiChart.draw(emojiData, emojiOptions);
-    msgLengthChart.draw(msgLengthData, msgLengthOptions)
+    msgLengthChart.draw(msgLengthData, msgLengthOptions);
 }
 
 function fullStackedCharts() {
-    isStackedCheck(dayOptions)
-    isStackedCheck(monthOptions)
-    isStackedCheck(yearOptions)
-    isStackedCheck(timeOptions)
-    isStackedCheck(historicalOptions)
-    isStackedCheck(wordOptions)
-    isStackedCheck(emojiOptions)
-    isStackedCheck(msgLengthOptions)
+    isStackedCheck(dayOptions);
+    isStackedCheck(monthOptions);
+    isStackedCheck(yearOptions);
+    isStackedCheck(timeOptions);
+    isStackedCheck(historicalOptions);
+    isStackedCheck(wordOptions);
+    isStackedCheck(emojiOptions);
+    isStackedCheck(msgLengthOptions);
 
     function isStackedCheck(options) {
         if (options.isStacked != 'percent') {
@@ -1025,21 +950,21 @@ function fullStackedCharts() {
     monthChart.draw(monthData, monthOptions);
     yearChart.draw(yearData, yearOptions);
     timeChart.draw(timeData, timeOptions);
-    historicalChart.draw(historicalData, historicalOptions)
+    historicalChart.draw(historicalData, historicalOptions);
     wordChart.draw(wordData, wordOptions);
     emojiChart.draw(emojiData, emojiOptions);
-    msgLengthChart.draw(msgLengthData, msgLengthOptions)
+    msgLengthChart.draw(msgLengthData, msgLengthOptions);
 }
 
 function noStackedCharts() {
-    isStackedCheck(dayOptions)
-    isStackedCheck(monthOptions)
-    isStackedCheck(yearOptions)
-    isStackedCheck(timeOptions)
-    isStackedCheck(historicalOptions)
-    isStackedCheck(wordOptions)
-    isStackedCheck(emojiOptions)
-    isStackedCheck(msgLengthOptions)
+    isStackedCheck(dayOptions);
+    isStackedCheck(monthOptions);
+    isStackedCheck(yearOptions);
+    isStackedCheck(timeOptions);
+    isStackedCheck(historicalOptions);
+    isStackedCheck(wordOptions);
+    isStackedCheck(emojiOptions);
+    isStackedCheck(msgLengthOptions);
 
     function isStackedCheck(options) {
         if (options.isStacked != false) {
@@ -1052,10 +977,10 @@ function noStackedCharts() {
     monthChart.draw(monthData, monthOptions);
     yearChart.draw(yearData, yearOptions);
     timeChart.draw(timeData, timeOptions);
-    historicalChart.draw(historicalData, historicalOptions)
+    historicalChart.draw(historicalData, historicalOptions);
     wordChart.draw(wordData, wordOptions);
     emojiChart.draw(emojiData, emojiOptions);
-    msgLengthChart.draw(msgLengthData, msgLengthOptions)
+    msgLengthChart.draw(msgLengthData, msgLengthOptions);
 }
 
 // %%%%% Helper functions that do not directly aid analysis or plotting
@@ -1086,10 +1011,10 @@ function sumObjectValues( obj ) {
 
 function arrayString2Ints(array) {
 
-    var intArray = []
+    var intArray = [];
 
     array.forEach(element => {
-        intArray.push(parseInt(element))
+        intArray.push(parseInt(element));
     });
 
     return intArray;
@@ -1121,19 +1046,19 @@ function loadDataTables(){
 // update progress status
 function updateStatus(){
     docStatus.innerText = "If you like, change some options then click Start to begin the analysis! Might take a few seconds for larger files.";
-    docStatus.classList.remove("alert-danger")
-    docStatus.classList.add("alert-warning")
+    docStatus.classList.remove("alert-danger");
+    docStatus.classList.add("alert-warning");
 }
 
 function changeFileSelectLabel() {
     document.getElementById("fileSelectLabel").innerText = selectedFile.files[0].name;
-    document.getElementById("fileSelectLabel").classList.add("text-success")
+    document.getElementById("fileSelectLabel").classList.add("text-success");
 }
 
 function toggleFbTutorial(){
     var element = document.getElementById("downloadTutorial");
 
-    element.style.display = element.style.display === "none" ? "" : "none"
+    element.style.display = element.style.display === "none" ? "" : "none";
 }
 
 function formatDate(date) {
