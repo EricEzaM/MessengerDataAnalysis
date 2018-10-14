@@ -5,4 +5,4 @@ I am not a super experienced developer, especially when it comes to Javascript s
 
 This project initially started as a python script
 
-[[https://github.com/username/repository/blob/master/img/octocat.png|alt=octocat]]
+![alt text](https://i.imgur.com/wKjR6rj.png)
