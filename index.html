@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>FB Analysis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" media="screen" href="style.css" />
+</head>
+
+<body>
+    <div id="introduction" class="container pt-5">
+        <div class="jumbotron">
+            <h1 class="display-4">Messenger Conversation Analyser</h1>
+            <div id="jumbotronBody">
+
+                <hr class="my-4">
+
+                <div class="text-center mb-3">
+                    <img class="w-25 rounded" src="./img/Display1.png" alt="">
+                    <img class="w-25 rounded" src="./img/Display2.png" alt="">
+                    <img class="w-25 rounded" src="./img/Display3.png" alt="">
+                </div>
+
+                <p class="lead">This is a simple application that can analyse your Facebook Messeneger data to get graphs and information about your message content and messenger usage! It is written in JavaScript and runs <em>completely offline</em> in your browser.</p>
+
+                <p class="lead">Your file is not sent to any server or stored anywhere; all the analysis is done locally on your computer. The code that this page runs is available on GitHub <a href="">here</a>.</p>
+                <p class="lead">Group conversations are supported too!</p>
+                <hr class="my-4">
+                <p class="lead">Before you use the application, you need to download your Facebook Messenger data in '.json' format. If you don't know how to do this, <a href="#!" id="fbTutOpen" class="text-primary" onclick="toggleFbTutorial();">click here</a>.</p>
+
+                <div id="downloadTutorial" style="display:none" class="">
+                    <h2>Downloading Your Facebook Messenger Data</h2>
+                    <p>Go to Facebook. Click on the little down arrow in the top right, near the notification icon</p>
+                    <div class="text-center">
+                        <img class="w-25 text" src="./img/FBtut1.png" alt="">
+                    </div>
+                    <p>On the left panel, go into "Your Facebook Information". Click "Download Your Information".</p>
+                    <div class="text-center">
+                            <img class="w-75 text" src="./img/FBtut2.png" alt="">
+                        </div>
+                    <p>On this page, make sure you have date range as "All of my data" and the format as "JSON". If you download your data as HTML, this application will not work. You can set the media quality to whatever you like, but setting it to 'Low' may decrease the download size. You can download all your information, like Posts, Comments, Events, etc, or you can just select "Messages", which is all this application uses. When you are ready, click Create File.</p>
+                    <div class="text-center">
+                            <img class="w-75 text" src="./img/FBtut3.png" alt="">
+                        </div>
+                    <p>Facebook will take a few minutes to process your information before you can download the file. You will get a notification when it is ready.</p>
+                    <p>Once it has downloaded, extract the files. Now you are ready to go!</p>
+                    <button type="button" id="hideFbTutorial" class="btn btn-primary" onclick="toggleFbTutorial();">Hide Guide</button>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <div id="allContainer" class="container text-left mb-5">
+
+        <div id="fileSelectDiv" class="mb-5">
+            <h2><strong>Step 1:</strong> Choose your conversation file to analyse</h1>
+
+            <p>Select a .json file from your downloaded messenger data. Don't have this yet? <a href="#!" onclick="toggleFbTutorial();">Open the guide</a> to see how to get it.</p>
+            <div class="text-center">
+                <div class="custom-file w-75">
+                    <input type="file" class="custom-file-input" id="openFile" accept=".json" onchange="updateStatus(); changeFileSelectLabel()">
+                    <label class="custom-file-label" for="customFile" id="fileSelectLabel">Choose file (.json format only)</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="analysisOptionsDiv">
+
+            <h2><strong>Step 2:</strong> Select analysis and graphing options</h2>
+
+            <form id="wordSearchRange" class="py-3">
+                Find most frequent words sent with a minimum length of
+                <input id="wordsMin" type="number" name="quantity" value="1" class="form-control d-inline-block">
+                character(s) and a maximum length of 
+                <input id="wordsMax" type="number" name="quantity" value="20" class="form-control d-inline-block">
+                characters.
+            </form>
+            
+            <p>When analysing at what time messages were sent during the day, group them by
+                <select class="custom-select w-25 h-25" id="messagesByDay" onchange="drawTimeChart()">
+                    <option value="Hours" selected>Hours</option>
+                    <option value="10 Minute Blocks">10 Minute Blocks</option>
+                </select>
+            </p>
+            <p>When analysing messages from the whole conversation history, group them by
+                <select class="custom-select w-25 h-25" id="messagesHistory">
+                    <option value="Day">Day</option>
+                    <option value="Month">Month</option>
+                </select>
+            </p>
+        </div>
+
+        <div id="analysisStartDiv">
+            <h2><strong>Step 3:</strong> Run the analysis!</h2>
+            <div class="text-center">
+                <p id="status" class="alert alert-danger text-center">Select a file!</p>
+
+                <input type="submit" id="submitFile" class="btn btn-success w-25" disabled="true" value="Start">
+            </div>
+        </div>
+
+        <hr class="my-3" style="border-width: 7px; border-color:#007E33; background-color:#007E33;">
+
+        <p id="waitMessage" class="text-muted">When the analysis is complete, data and plots will be here.</p>
+
+        <div id="charts" class="text-center" hidden>
+            <h3 class="display-4">Conversation Information</h3>
+            <br>
+            <p id="info"></p>
+            <div class="d-inline-block mt-3 mb-3">
+                <div id="pieChartContainer" class="d-flex">
+                    <div id="messageSentInfo_chart"></div>
+                    <div id="wordsSentInfo_chart"></div>
+                </div>
+            </div>
+            <table id="participantWordInfoTable" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
+                <tr id="infoHeaderRow" class="thead-light">
+                    <th class="px-2">Name</th>
+                    <th class="px-2">Messages Sent</th>
+                    <th class="px-2">Words Sent</th>
+                    <th class="px-2">Average Words/message</th>
+                </tr>
+            </table>
+            <div id="chartContainer" class="text-center" style="display: inline-block;">
+                <hr class="my-3 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+                <div class="chart_div" id="day_chart"></div>
+                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+                <div class="chart_div" id="month_chart"></div>
+                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+                <div class="chart_div" id="year_chart"></div>
+                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+                <div class="chart_div" id="time_chart"></div>
+                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+                <div class="chart_div" id="historical_chart"></div>
+                <div>
+                    <strong>Horizontal Axis  Range</strong>
+                    <br>
+                    Minimum: <input id="histMin" type="date" name="quantity" value="2013-10-14" class="form-control w-25 d-inline-block" oninput="histChangeXAxisBounds()">
+                    Maximum: <input id="histMax" type="date" name="quantity" value="2018-10-14" class="form-control w-25 d-inline-block" oninput="histChangeXAxisBounds()">
+                    <button type="button" id="resetHistRange" class="btn btn-primary" onclick="resetHistRange();">Reset to default</button>
+                </div>
+                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+                <div class="chart_div" id="messageLength_chart"></div>
+                <div>
+                    <strong>Horizontal Axis Range</strong>
+                    <br>
+                    Minimum: <input id="msgLengthMin" type="number" name="quantity" value="0" class="form-control w-25 d-inline-block" oninput="msgLengthChangeXAxisBounds()">
+                    Maximum: <input id="msgLengthMax" type="number" name="quantity" value="1" class="form-control w-25 d-inline-block" oninput="msgLengthChangeXAxisBounds()">
+                    <button type="button" id="resetMsgLengthRange" class="btn btn-primary" onclick="resetMsgLengthRange();">Reset to default</button>
+                    <br>
+                    <small>To get a clearer view for message lengths that are less frequent, try setting graph display to '100% stacked'</small>
+                    <br>
+                    <p id="messageLengthInfo"></p>
+                </div>
+                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+                <div class="chart_div" id="word_chart"></div>
+                <p>Want to see more interesting word frequency results? Try <a href="#wordSearchRange">setting limits on the minimum and maximum word length</a>.</p>
+                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+                <p>Unfortunately due to limitations in the Google Charts API, I cannot put the emoji images in the labels of the graph. What you see below is the best compromise I could come up with.</p>
+                <div class="chart_div" id="emoji_chart"></div>        
+                <br>
+                <div id="emojiTableDiv" class="d-flex justify-content-center">
+                    <table id="emojiTable" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
+                        <tr id="headerRow" class="thead-light">
+                            <th>Rank</th>
+                            <th>Emoji</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chartToggles" class="sticky p-3" hidden>
+        <h6><a href="#allContainer">↑ Back To Top ↑</a></h6>
+        <h5>Change the way the graphs are displayed</h5>
+        <button id="noStacked" class="btn btn-primary d-block m-1 w-100" onclick="noStackedCharts()">No Stacked Columns (normal Column Graph)</button>
+        <button id="normalStacked" class="btn btn-primary d-block m-1 w-100" onclick="normalStackedCharts()">Stacked Columns</button>
+        <button id="fullStacked" class="btn btn-primary d-block m-1 w-100" onclick="fullStackedCharts()">100% Stacked Columns (percentages)</button>
+    </div>
+
+    <footer class="container d-block">
+        &copy; Eric Michaels 2018 || <a href="">GitHub Source</a>
+    </footer>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script type="text/javascript" src="emojione.min.js"></script>
+<script type="text/javascript" src="emojiSplitter.js"></script>
+<script type="text/javascript" src="main.js"></script>
+
+</html>

@@ -1,0 +1,22 @@
+.sticky {
+    position: fixed;
+    bottom: 3%;
+    left: 1%;
+    text-align: center;
+    background-color: white;
+    z-index: 1;
+    border-radius: 2rem;
+}
+
+.chart_div>div>div{
+    margin: auto;
+}
+
+footer{
+    padding-top: 12rem;
+}
+
+#wordsMin, #wordsMax{
+    width: 5% !important;
+    min-width: 80px;
+}
