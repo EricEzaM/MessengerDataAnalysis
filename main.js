@@ -1,3 +1,5 @@
+console.log("Last Updated 14-10-2018 10:22pm")
+
 // load google charts API
 google.charts.load('current', {'packages':['corechart']});
 google.charts.load('current', {packages: ['table']});
@@ -309,11 +311,11 @@ function messageContentAnalysis(content){
     // ~~~~~ WORDS ~~~~~
 
     // Match anthing that DOES CONTAIN an alphanumeric character or apostrophe. 
-    var messageWordsUnfiltered = messageContent.filter(n => n.match(/[\w‘’“”']/g));
+    var messageWordsUnfiltered = messageContent.filter(n => n.match(/[\w‘’“”'ÅåÄäÖöÅåÆæØø]/g));
     // this unfiltered list will still contain words that have emojis at the start/end with no space in between. Remove the emojis so just the word is left.
     var messageWordsFiltered = [];
     messageWordsUnfiltered.forEach(word => {
-        messageWordsFiltered.push(word.replace(/[^\w‘’“”']/g,''));
+        messageWordsFiltered.push(word.replace(/[^\w‘’“”'ÅåÄäÖöÅåÆæØø]/g,''));
     })
     // remove empty entries, if there are any. 
     messageWordsFiltered = messageWordsFiltered.filter(function(e){return e});
@@ -321,7 +323,7 @@ function messageContentAnalysis(content){
     // ~~~~~ EMOJIS ~~~~~
 
     // match anything that contains something that IS NOT an alphanumeric charater or apostophe
-    var messageAllEmojis = messageContent.filter(n => n.match(/[^\w‘’“”']/g));
+    var messageAllEmojis = messageContent.filter(n => n.match(/[^\w‘’“”'ÅåÄäÖöÅåÆæØø]/g));
     // array used to store INDIVIDUAL emojis sent. Eg 3 hearts in a row become 3 induvidual hearts
     var messageEmojisSent = [];
     // use emoji splitter tool to split by emojis. 
@@ -330,7 +332,7 @@ function messageContentAnalysis(content){
         // split emojis and other characters
         var splitwords = splitter.splitGraphemes(word);
         // remove other characters, only leaving emojis
-        splitWordsAndEmojis = splitwords.filter(n => n.match(/[^\w‘’“”']/g));
+        splitWordsAndEmojis = splitwords.filter(n => n.match(/[^\w‘’“”'ÅåÄäÖöÅåÆæØø]/g));
         // add them to the emoji list
         splitWordsAndEmojis.forEach(emoji => {
 
