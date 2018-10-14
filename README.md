@@ -6,5 +6,5 @@ I am not a super experienced developer, especially when it comes to Javascript s
 This project initially started as a python script
 
 <p align="center">
-  <img src="./otherimg/python1" width="350">
+  <img src="./otherimg/python1.png" width="350">
 </p>
