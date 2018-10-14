@@ -5,4 +5,6 @@ I am not a super experienced developer, especially when it comes to Javascript s
 
 This project initially started as a python script
 
-![alt text](https://i.imgur.com/wKjR6rj.png)
+<p align="center">
+  <img src="./otherimg/python1" width="350">
+</p>
