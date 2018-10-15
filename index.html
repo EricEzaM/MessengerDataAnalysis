@@ -164,106 +164,132 @@
 
         <hr class="my-3" style="border-width: 7px; border-color:#007E33; background-color:#007E33;">
 
+        <p style='overflow:hidden;page-break-before:always;'></p>
+
         <p id="waitMessage" class="text-muted">When the analysis is complete, data and plots will be here.</p>
+    </div>
 
-        <div id="charts" class="text-center" hidden>
-            <h3 class="display-4">Conversation Information</h3>
-            <br>
-            <p id="info"></p>
-            <div class="d-inline-block mt-3 mb-3">
-                <div id="pieChartContainer" class="d-flex">
-                    <div id="messageSentInfo_chart"></div>
-                    <div id="wordsSentInfo_chart"></div>
-                </div>
+    <div id="conversationInformation" class="text-center" hidden>
+        <h3 id="conversationTitle" class="display-4">Conversation Information</h3>
+        <br>
+        <p id="info"></p>
+
+        <hr class="my-3 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+
+        <div class="d-inline-block mt-3 mb-3">
+            <div id="pieChartContainer" class="d-flex">
+                <div id="messageSentInfo_chart"></div>
+                <div id="wordsSentInfo_chart"></div>
             </div>
-            <table id="participantWordInfoTable" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
-                <thead class="bg-primary text-light">
-                    <th class="px-2">Name</th>
-                    <th class="px-2">Messages Sent</th>
-                    <th class="px-2">Words Sent</th>
-                    <th class="px-2">Average Words/Message</th>
-                </thead>
-                <tbody id="participantWordInfoBody">
+        </div>
 
-                </tbody>
-            </table>
+        <table id="participantWordInfoTable" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
+            <thead class="bg-primary text-light">
+                <th class="px-2">Name</th>
+                <th class="px-2">Messages Sent</th>
+                <th class="px-2">Words Sent</th>
+                <th class="px-2">Average Words/Message</th>
+            </thead>
+            <tbody id="participantWordInfoBody">
+            </tbody>
+        </table>
+
+        <br>
+
+        <table id="messageTypeTable" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
+            <thead id="typesHeaderRow" class="bg-primary text-light">
+                <th class="px-2">Name</th>
+                <th class="px-2">Text Messages</th>
+                <th class="px-2">Photos</th>
+                <th class="px-2">Videos</th>
+                <th class="px-2">Stickers</th>
+                <th class="px-2">GIFs</th>
+                <th class="px-2">Files</th>
+                <th class="px-2">Shared Links</th>
+                <th class="px-2">Audio Files</th>
+                <th class="px-2">Plans</th>
+            </thead>
+            <tbody id="messageTypesInfoTable">
+            </tbody>
+        </table>
+
+        <p style='overflow:hidden;page-break-before:always;'></p>
+        
+        <div id="chartContainer" class="text-center" style="display: inline-block;">
+
+            <hr class="my-3 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+            <div class="chart_div" id="day_chart"></div>
+
+            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+            <div class="chart_div" id="month_chart"></div>
+
+            <p style='overflow:hidden;page-break-before:always;'></p>
+
+            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+            <div class="chart_div" id="year_chart"></div>
+
+            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+            <div class="chart_div" id="time_chart"></div>
+
+            <p style='overflow:hidden;page-break-before:always;'></p>
+
+            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+            <div class="chart_div" id="historical_chart"></div>
+            <div>
+                <strong>Horizontal Axis  Range</strong>
+                <br>
+                Minimum: <input id="histMin" type="date" name="quantity" value="2013-10-14" class="form-control w-25 d-inline-block" oninput="histChangeXAxisBounds()">
+                Maximum: <input id="histMax" type="date" name="quantity" value="2018-10-14" class="form-control w-25 d-inline-block" oninput="histChangeXAxisBounds()">
+                <button type="button" id="resetHistRange" class="btn btn-primary" onclick="resetHistRange();">Reset to default</button>
+            </div>
+
+            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+            <div class="chart_div" id="messageLength_chart"></div>
+            <div>
+                <strong>Horizontal Axis Range</strong>
+                <br>
+                Minimum: <input id="msgLengthMin" type="number" name="quantity" value="0" class="form-control w-25 d-inline-block" oninput="msgLengthChangeXAxisBounds()">
+                Maximum: <input id="msgLengthMax" type="number" name="quantity" value="1" class="form-control w-25 d-inline-block" oninput="msgLengthChangeXAxisBounds()">
+                <button type="button" id="resetMsgLengthRange" class="btn btn-primary" onclick="resetMsgLengthRange();">Reset to default</button>
+                <br>
+                <small>To get a clearer view for message lengths that are less frequent, try setting graph display to '100% stacked'</small>
+                <br>
+                <p id="messageLengthInfo"></p>
+            </div>
+
+            <p style='overflow:hidden;page-break-before:always;'></p>
+
+            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+            <div class="chart_div" id="word_chart"></div>
+            <p>Want to see more interesting word frequency results? Try <a href="#wordSearchRange">setting limits on the minimum and maximum word length</a>.</p>
+            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
+            <p>Unfortunately due to limitations in the Google Charts API, I cannot put the emoji images in the labels of the graph. What you see below is the best compromise I could come up with.</p>
+
+            <div class="chart_div" id="emoji_chart"></div>
             <br>
-            <table id="messageTypeTable" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
-                <thead>
-                    <tr id="infoHeaderRowTypes" class="bg-primary text-light">
-                        <th class="px-2">Name</th>
-                        <th class="px-2">Text Messages</th>
-                        <th class="px-2">Photos</th>
-                        <th class="px-2">Videos</th>
-                        <th class="px-2">Stickers</th>
-                        <th class="px-2">GIFs</th>
-                        <th class="px-2">Files</th>
-                        <th class="px-2">Shared Links</th>
-                        <th class="px-2">Audio Files</th>
-                        <th class="px-2">Plan</th>
-                        <th class="px-2">External Link</th>
+            
+            <p style='overflow:hidden;page-break-before:always;'></p>
+
+            <table id="emojiTable" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
+                <thead class="bg-primary text-light">
+                    <tr id="emojiTableHead">
+                        <th class="px-2">Rank</th>
+                        <th class="px-2">Emoji</th>
                     </tr>
                 </thead>
-                <tbody id="messageTypesInfoTable">
-
+                <tbody id="emojiTableBody">
                 </tbody>
             </table>
-            <div id="chartContainer" class="text-center" style="display: inline-block;">
-                <hr class="my-3 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-                <div class="chart_div" id="day_chart"></div>
-                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-                <div class="chart_div" id="month_chart"></div>
-                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-                <div class="chart_div" id="year_chart"></div>
-                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-                <div class="chart_div" id="time_chart"></div>
-                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-                <div class="chart_div" id="historical_chart"></div>
-                <div>
-                    <strong>Horizontal Axis  Range</strong>
-                    <br>
-                    Minimum: <input id="histMin" type="date" name="quantity" value="2013-10-14" class="form-control w-25 d-inline-block" oninput="histChangeXAxisBounds()">
-                    Maximum: <input id="histMax" type="date" name="quantity" value="2018-10-14" class="form-control w-25 d-inline-block" oninput="histChangeXAxisBounds()">
-                    <button type="button" id="resetHistRange" class="btn btn-primary" onclick="resetHistRange();">Reset to default</button>
-                </div>
-                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-                <div class="chart_div" id="messageLength_chart"></div>
-                <div>
-                    <strong>Horizontal Axis Range</strong>
-                    <br>
-                    Minimum: <input id="msgLengthMin" type="number" name="quantity" value="0" class="form-control w-25 d-inline-block" oninput="msgLengthChangeXAxisBounds()">
-                    Maximum: <input id="msgLengthMax" type="number" name="quantity" value="1" class="form-control w-25 d-inline-block" oninput="msgLengthChangeXAxisBounds()">
-                    <button type="button" id="resetMsgLengthRange" class="btn btn-primary" onclick="resetMsgLengthRange();">Reset to default</button>
-                    <br>
-                    <small>To get a clearer view for message lengths that are less frequent, try setting graph display to '100% stacked'</small>
-                    <br>
-                    <p id="messageLengthInfo"></p>
-                </div>
-                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-                <div class="chart_div" id="word_chart"></div>
-                <p>Want to see more interesting word frequency results? Try <a href="#wordSearchRange">setting limits on the minimum and maximum word length</a>.</p>
-                <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-                <p>Unfortunately due to limitations in the Google Charts API, I cannot put the emoji images in the labels of the graph. What you see below is the best compromise I could come up with.</p>
-                <div class="chart_div" id="emoji_chart"></div>
-                <br>
-                <div id="emojiTableDiv" class="d-flex justify-content-center">
-                    <table id="emojiTable" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
-                        <tr id="headerRow" class="thead-light">
-                            <th>Rank</th>
-                            <th>Emoji</th>
-                        </tr>
-                    </table>
-                </div>
-            </div>
         </div>
     </div>
 
     <div id="chartToggles" class="sticky p-3" hidden>
         <h6><a href="#AnalysisOptions">↑ Back To Top ↑</a></h6>
         <h5>Change the way the graphs are displayed</h5>
-        <button id="noStacked" class="btn btn-primary d-block m-1 w-100" onclick="noStackedCharts()">No Stacked Columns (normal Column Graph)</button>
+        <button id="noStacked" class="btn btn-primary d-block m-1 w-100" onclick="noStackedCharts()">Normal Column Graph</button>
         <button id="normalStacked" class="btn btn-primary d-block m-1 w-100" onclick="normalStackedCharts()">Stacked Columns</button>
         <button id="fullStacked" class="btn btn-primary d-block m-1 w-100" onclick="fullStackedCharts()">100% Stacked Columns (percentages)</button>
+        <button id="fullStacked" class="btn btn-danger d-block m-1 w-100" onclick="printPlots()">Export page as PDF</button>
     </div>
 
     <footer class="container d-block">

@@ -12,7 +12,7 @@
 }
 
 footer{
-    padding-top: 12rem;
+    padding-top: 16rem;
 }
 
 #wordsMin, #wordsMax{
@@ -53,3 +53,8 @@ footer{
 #messageTypeTable tr {
     font-size: 0.9rem;
 }
+
+.pagebreak{
+    page-break-before: always;
+}
+
