@@ -54,7 +54,7 @@ submitButton.addEventListener("click", function(){
 
     document.getElementById("emojiTableDiv").innerHTML = `<table id="emojiTable" class="table-sm table-striped table-bordered text-center"><tr id="headerRow" class="thead-light"><th>Rank</th><th>Emoji</th></tr></table>`;
 
-    document.getElementById("participantWordInfoTable").innerHTML = `<tr id="infoHeaderRow" class="thead-light"><th class="px-2">Name</th><th class="px-2">Messages Sent</th><th class="px-2">Words Sent</th><th class="px-2">Average Words/message</th></tr>`;
+    //document.getElementById("participantWordInfoBody").innerHTML = `<tr id="infoHeaderRow" class="thead-light"><th class="px-2">Name</th><th class="px-2">Messages Sent</th><th class="px-2">Words Sent</th><th class="px-2">Average Words/message</th></tr>`;
 
     // new file reader
     var fr = new FileReader();
@@ -164,7 +164,7 @@ function analyseAndPlot(json){
 
     participantsListTrue.forEach(participant => {
 
-        var participantWordInfoTable = document.getElementById("participantWordInfoTable");
+        var participantWordInfoBody = document.getElementById("participantWordInfoBody");
 
         var partMessagesSent = conversation[participant]["messagesSent"];
         var partWordsSent = sumObjectValues(conversation[participant]["words"]);
@@ -177,7 +177,27 @@ function analyseAndPlot(json){
 
         var rowHTML = (`<td>${participant}</td><td>${partMessagesSent}</td><td>${partWordsSent}</td><td>${(partWordsSent/partMessagesSent).toFixed(2)}</td>`);
 
-        participantWordInfoTable.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`);
+        participantWordInfoBody.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`);
+    });
+
+    participantsListTrue.forEach(participant => {
+
+        var participantWordInfoBody = document.getElementById("messageTypesInfoTable");
+
+        var textMsg = (conversation[participant]["messageContentType"]["Text Messages"] === undefined) ? 0 : conversation[participant]["messageContentType"]["Text Messages"];
+        var photos = (conversation[participant]["messageContentType"]["Photos"] === undefined) ? 0 : conversation[participant]["messageContentType"]["Photos"];
+        var videos = (conversation[participant]["messageContentType"]["Videos"] === undefined) ? 0 : conversation[participant]["messageContentType"]["Videos"];
+        var stickers = (conversation[participant]["messageContentType"]["Stickers"] === undefined) ? 0 : conversation[participant]["messageContentType"]["Stickers"];
+        var gifs = (conversation[participant]["messageContentType"]["GIFs"] === undefined) ? 0 : conversation[participant]["messageContentType"]["GIFs"];
+        var files = (conversation[participant]["messageContentType"]["Files"] === undefined) ? 0 : conversation[participant]["messageContentType"]["Files"];
+        var shared = (conversation[participant]["messageContentType"]["Shared Links"] === undefined) ? 0 : conversation[participant]["messageContentType"]["Shared Links"];
+        var audio = (conversation[participant]["messageContentType"]["Audio Files"] === undefined) ? 0 : conversation[participant]["messageContentType"]["Audio Files"]
+        var plans = (conversation[participant]["messageContentType"]["Plan (linked date/time)"] === undefined) ? 0 : conversation[participant]["messageContentType"]["Plan (linked date/time)"]
+        var extLink = (conversation[participant]["messageContentType"]["Link to External Site"] === undefined) ? 0 : conversation[participant]["messageContentType"]["Link to External Site"]
+
+        var rowHTML = (`<td>${participant}</td><td>${textMsg}</td><td>${photos}</td><td>${videos}</td><td>${stickers}</td><td>${gifs}</td><td>${files}</td><td>${shared}</td><td>${audio}</td><td>${plans}</td><td>${extLink}</td>`);
+
+        participantWordInfoBody.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`);
     });
 
     drawDayChart();
@@ -355,8 +375,8 @@ function sortMessageContentByFrequency(content){
 
 // %%%%% PLOTTING %%%%%
 
-graphWidth = document.getElementById("allContainer").offsetWidth*0.75;
-graphHeight = document.getElementById("allContainer").offsetWidth*0.5;
+graphWidth = document.getElementById("AnalysisOptions").offsetWidth*0.75;
+graphHeight = document.getElementById("AnalysisOptions").offsetWidth*0.5;
 titleFontSize = 18;
 
 commonChartArea = {width: '100%', height: '80%', left:'10%'};
@@ -775,6 +795,8 @@ function drawWordChart() {
         }
     }
 
+    wordOptions.title = `Words by Frequency, limited to ${wordSearch_minLength} to ${wordSearch_maxLength} letters long`
+
     wordChart.draw(wordData, wordOptions);
 }
 
@@ -1073,4 +1095,17 @@ function formatDate(date) {
     if (day.length < 2) day = '0' + day;
 
     return [year, month, day].join('-');
+}
+
+function showTableRows() {
+    var tdList = document.getElementsByTagName("td");
+    var thList = document.getElementsByTagName("th");
+
+    for (var i = 0; i < tdList.length; i++) {
+        tdList[i].removeAttribute("hidden")
+    }
+
+    for (var i = 0; i < thList.length; i++) {
+        thList[i].removeAttribute("hidden")
+    }
 }
