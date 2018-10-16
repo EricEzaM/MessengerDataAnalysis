@@ -25,14 +25,13 @@
                     <li class="lead">Analyse personal and group converstions.</li>
                     <li class="lead">Get a visual representation of your data.</li>
                     <li class="lead">Works completely offline - your data is analysed locally on your computer and <em>not</em> sent to a server.</li>
-                    <li class="lead"><a href="example.html">Here</a> is a preview of what yours might look like!</li> 
                 </ul>
 
                 <div class="text-center">
                     <a role="button" id="skipToStep1" class="btn btn-primary my-3 px-5" href="#fileSelectDiv">Get Started</a>
                 </div>
 
-                <div id="carousel" class="carousel slide w-75 m-auto rounded" data-ride="carousel" data-interval="4000">
+                <div id="carousel" class="carousel slide w-100 m-auto rounded" data-ride="carousel">
                     <div class="carousel-inner">
                         <div class="carousel-item active">
                             <img class="w-100" src="./img/Display1.png" alt="PieCharts">
@@ -44,21 +43,35 @@
                         <div class="carousel-item">
                             <img class="w-100" src="./img/Display2.png" alt="WordsFrequency">
                             <div class="carousel-caption d-none d-md-block text-light bg-dark">
-                                <p class="lead">See your most sent words and emojis...</p>
+                                <p class="lead">Group conversations are supported!</p>
                             </div>
                         </div>
 
                         <div class="carousel-item">
                             <img class="w-100" src="./img/Display3.png" alt="WordsFrequencyLong">
                             <div class="carousel-caption d-none d-md-block text-light bg-dark">
-                                <p class="lead">... and even set limits on word length</p>
+                                <p class="lead">See when you send your messages by time, by day, by month, by year...</p>
                             </div>
                         </div>
 
                         <div class="carousel-item">
+                                <img class="w-100" src="./img/Display7.png" alt="Image5">
+                                <div class="carousel-caption d-none d-md-block text-light bg-dark">
+                                    <p class="lead">...and throughout the whole conversation history.</p>
+                                </div>
+                            </div>
+
+                        <div class="carousel-item">
                             <img class="w-100" src="./img/Display4.png" alt="DaysOfWeek1">
                             <div class="carousel-caption d-none d-md-block text-light bg-dark">
-                                <p class="lead">Change chart types to get a better view of your data.</p>
+                                <p class="lead">See information about your messages like word length...</p>
+                            </div>
+                        </div>
+
+                        <div class="carousel-item">
+                            <img class="w-100" src="./img/Display6.png" alt="Image5">
+                            <div class="carousel-caption d-none d-md-block text-light bg-dark">
+                                <p class="lead">...and word content. Even which emojis you send the most!</p>
                             </div>
                         </div>
 
@@ -116,9 +129,12 @@
     <div id="AnalysisOptions" class="container text-left mb-5">
 
         <div id="fileSelectDiv" class="mb-5">
+            <h4><strong>Before You Start:</strong> Download your Messenger Data from Facebook</h4>
+            <p>If you don't have it yet, I wrote <a href="#!" onclick="toggleFbTutorial();" style="text-decoration: underline">this guide</a> on how to get it.</p>
+
             <h2><strong>Step 1:</strong> Choose your conversation file to analyse</h2>
 
-            <p>Select a .json file from your downloaded messenger data. Don't have this yet? <a href="#!" onclick="toggleFbTutorial();">Open the guide</a> to see how to get it.</p>
+            <p>Select a .json file from your downloaded messenger data.</p>
             <div class="text-center">
                 <div class="custom-file w-75">
                     <input type="file" class="custom-file-input" id="openFile" accept=".json" onchange="updateStatus(); changeFileSelectLabel()">
@@ -303,6 +319,6 @@
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script type="text/javascript" src="emojione.min.js"></script>
 <script type="text/javascript" src="emojiSplitter.min.js"></script>
-<script type="text/javascript" src="main.min.js"></script>
+<script type="text/javascript" src="main.js"></script>
 
 </html>
