@@ -411,6 +411,7 @@ function setAllGraphOptions() {
                     isStacked: true,
                     hAxis: {
                         format: 'HH:mm',
+                        title: 'Time of Day',
                     },
                     chartArea: commonChartArea,
                     legend: commonChartLegend,
@@ -451,10 +452,11 @@ function setAllGraphOptions() {
                         fontSize: titleFontSize,
                     },
                     hAxis:{
+                        title: 'Message Length (words)',
                         viewWindow:{
                             min: 0,
                             max: 100 
-                        }}};
+                    }}};
 
     wordOptions = {title:"Words by Frequency",
                     width: graphWidth,
@@ -476,6 +478,9 @@ function setAllGraphOptions() {
                     legend: commonChartLegend,
                     titleTextStyle: {
                         fontSize: titleFontSize,
+                    },        
+                    hAxis: {
+                        title: 'Emoji Rank',
                     }};
 
     messagesSentOptions = {title:"Messages Sent",
@@ -1093,10 +1098,9 @@ function updateStatus(){
 };
 
 function printPlots() {
-    var printContents = document.getElementById("conversationInformation").innerHTML;
+    var printContents = document.getElementById("conversationInformation").outerHTML;
     var originalContents = document.body.innerHTML;
     document.body.innerHTML = printContents.replace("style=\"display: inline-block;\"", '');
-    document.body.classList.add("text-center")
     window.print();
     document.body.innerHTML = originalContents;
 };
