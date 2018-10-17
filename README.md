@@ -1,5 +1,5 @@
 # Messenger Data Analysis
-Application to analyse Facebook Messenger data.
+Application to analyse Facebook Messenger data. /u/TheNotorious-GOB/
 
 I am not a super experienced developer, especially when it comes to JavaScript, so the code might be a little bit messy.
 
