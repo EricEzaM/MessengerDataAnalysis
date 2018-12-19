@@ -5,7 +5,6 @@
     text-align: center;
     background-color: white;
     z-index: 1;
-    border-radius: 2rem;
 }
 
 .chart_div>div>div{
@@ -13,10 +12,70 @@
 }
 
 footer{
-    padding-top: 12rem;
+    padding-top: 16rem;
 }
 
 #wordsMin, #wordsMax{
     width: 5% !important;
     min-width: 80px;
+}
+
+.display-4{
+    font-size: 3rem;
+}
+
+.small-text>p{
+    font-size: 1rem;
+}
+
+.carousel-inner .carousel-item {
+    transition: -webkit-transform 2s ease !important;
+    transition: transform 2s ease !important;
+    transition: transform 2s ease, -webkit-transform 2s ease !important;
+}
+
+.carousel-caption {
+    padding: 0;
+    bottom: 0px;
+    right: 0%;
+    left: 0%;
+}
+
+.carousel-caption>p{
+    padding: 0;
+    margin: 0;
+}
+
+#participantWordInfoTable tr{
+    font-size: 0.9rem;
+}
+
+#messageTypeTable tr {
+    font-size: 0.9rem;
+}
+
+.pagebreak{
+    page-break-before: always;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    bottom: 40%;
+    height: 100px;
+    width: 100px;
+    outline: black;
+    background-image: none;
+}
+
+.carousel-control-next-icon:after
+{
+    content: '→';
+    font-size: 55px;
+    color: black;
+}
+
+.carousel-control-prev-icon:after {
+    content: '←';
+    font-size: 55px;
+    color: black;
 }
