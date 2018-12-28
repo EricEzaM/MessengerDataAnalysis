@@ -11,18 +11,27 @@
 
         gtag('config', 'UA-127622082-1');
     </script>
+
     <!-- Custom Content -->
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
     <title>Messenger Conversation Analyser</title>
-    <link rel="icon" href="./img/icon.png">
+
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" href="./img/icon.png">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" media="screen" href="style.css" />   
 </head>
 
 <body>
     <div id="introduction" class="container pt-5">
+        <canvas class="chart_div" id="chart_TimeData_Day"></canvas>
+        <canvas class="chart_div" id="chart_TimeData_Month"></canvas>
+        <canvas class="chart_div" id="chart_TimeData_Year"></canvas>
+        <canvas class="chart_div" id="chart_TimeData_Time"></canvas>
+        <canvas class="chart_div" id="chart_TimeData_Fulldate"></canvas>
+        <canvas class="chart_div" id="alltime_chart"></canvas>
         <div class="jumbotron">
             <h1 class="display-4">Messenger Conversation Analyser</h1>
             <div id="jumbotronBody">
@@ -244,7 +253,7 @@
         <div id="chartContainer" class="text-center" style="display: inline-block;">
 
             <hr class="my-3 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-            <div class="chart_div" id="day_chart"></div>
+            <canvas class="chart_div" id="day_chart2"></canvas>
 
             <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
             <div class="chart_div" id="month_chart"></div>
@@ -323,13 +332,16 @@
     </footer>
 </body>
 
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js" integrity="sha256-MZo5XY1Ah7Z2Aui4/alkfeiq3CopMdV/bbkc/Sh41+s=" crossorigin="anonymous"></script>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/google-palette@1.1.0/palette.js" integrity="sha256-5f158MWiiHKxtoGF9P+WFLMLh3bMthtMx58ayBvTF38=" crossorigin="anonymous"></script>
+
 <script type="text/javascript" src="emojione.min.js"></script>
 <script type="text/javascript" src="emojiSplitter.min.js"></script>
+<script type="text/javascript" src="stacked.js"></script>
 <script type="text/javascript" src="main.js"></script>
 
 </html>
