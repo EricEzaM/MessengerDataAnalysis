@@ -2,13 +2,23 @@
 
 console.log("Last Updated 26-12-2018")
 
+google.charts.load('current', {packages: ['corechart']});
+google.charts.setOnLoadCallback(EnabelSubmitButton);
+
 var submitButton = document.getElementById("submitFile"); // submit button
 var selectedFile = document.getElementById("openFile"); // choose file button
 
 var Conversation = {};
 var Participants = [];
 
-var time_ChartDisplay = "10 Minute Blocks" // "Hours"
+    // TODO Handle messages where there are messages years apart
+var TimeArrays = {
+    // For day and month, override subData so all possible values are present
+    'Day': ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    'Month': ["January","February","March","April","May","June","July", "August","September","October","November","December"]
+};
+
+var time_ChartDisplay = "10 Minute locks" // "Hours"
 
 var latin_map = {
     "à": "a", "è": "e", "ì": "i", "ò": "o", "ù": "u", "À": "A", "È": "E",
@@ -88,6 +98,7 @@ submitButton.addEventListener("click", function () {
 });
 
 function AnalyseConversation(inputJSON) {
+    var t1 = performance.now();
 
     // RESET
     ConversationReset();
@@ -95,7 +106,8 @@ function AnalyseConversation(inputJSON) {
     // INIT
     Conversation["ConversationTitle"] = inputJSON.title;
     InitialiseConversation(inputJSON.participants);
-
+    var t2 = performance.now();
+    console.log("Init done: " + (t2-t1).toFixed(2) + " milliseconds");
     // Start filling Data
     Conversation.ConversationTotals.MessagesSentCount = inputJSON.messages.length;
 
@@ -145,11 +157,17 @@ function AnalyseConversation(inputJSON) {
         }
     });
 
-    // Sort Words
+    var t3 = performance.now();
+    console.log("Analysis done: " + (t3-t2).toFixed(2) + " milliseconds");
+
+    // Sort Words / Emojis
     Participants.forEach(participant => {
         Conversation[participant]["WordsSentOrdered"] = ObjectSortByValue(Conversation[participant]["WordsSent"]);
         Conversation[participant]["EmojisSentOrdered"] = ObjectSortByValue(Conversation[participant]["EmojisSent"]);
     });
+
+    var t4 = performance.now();
+    console.log("Sorting words/emojis done: " + (t4-t3).toFixed(2) + " milliseconds");
 
     console.log("Raw Data:", Conversation);
 
@@ -158,6 +176,9 @@ function AnalyseConversation(inputJSON) {
     ChartData("TimeData", "Year");
     ChartData("TimeData", "Time");
     ChartData("TimeData", "Fulldate");
+
+    var t5 = performance.now();
+    console.log("Charting done: " + (t5-t4).toFixed(2) + " milliseconds");
 }
 
 function InitialiseConversation(participants) {
@@ -218,8 +239,8 @@ function TimeAnalysis(timestamp) {
     var timeData = {};
 
     // get the day, month and year of each message
-    timeData["Day"] = messageDateTime.getDay(); // day of the week 0-6
-    timeData["Month"] = messageDateTime.getMonth(); // month 0-11
+    timeData["Day"] = TimeArrays["Day"][messageDateTime.getDay()]; // day of the week (Words)
+    timeData["Month"] = TimeArrays["Month"][messageDateTime.getMonth()]; // month (wprds)
     timeData["Year"] = messageDateTime.getFullYear(); // year
 
     // get the time of the message so it is always in HH:MM form. Also round the minutes to the users preference (to the hour, or in 10m blocks)
@@ -244,9 +265,6 @@ function TimeAnalysis(timestamp) {
                 else {
                     return minutes.toString()[0] + "0";
                 }
-
-            case "10 Minute Blocks":
-                return "00";
 
             default:
                 return "00";
@@ -391,74 +409,102 @@ function MessageWordsAnalysis(content) {
 // ~~~~~ Charting ~~~~~
 
 function ChartData(mainData, subData) {
-    // messages by day of week
+    // If subdata is passed as not null, proceed with date/time analysis
     if (subData) {
+        // We dont wanna override the defaults for day / month
+        if (subData != "Day" && subData != "Month") {
+            TimeArrays[subData] = Object.keys(Conversation["ConversationTotals"][mainData][subData]);   
+        }
+        // Set the location context for the chart
         var ctx = document.getElementById("chart_" + mainData + "_" + subData);
 
-        var labels = Object.keys(Conversation["ConversationTotals"][mainData][subData]);
+        var data = new google.visualization.DataTable();
+        var colours = palette('mpn65', Participants.length);
+        var styles = [];
 
-        var datasets = []
+        // ~~~ Datatable, Columns Setup ~~~
+        if (subData == "Time") {
+            data.addColumn('timeofday', 'Data');
+        } 
+        else if(subData == "Fulldate"){
+            data.addColumn('date','Data')
+        }
+        else { // day/ month/year
+            data.addColumn('string', 'Data');
+        }
+        // Counter for accessing styles
+        var stylesIndex = 0;
+        Participants.forEach(participant =>{
+            if (participant == "ConversationTotals") {
+                return;
+            }
+            // Add styles for each series using the colours generated from palette()
+            styles.push('fill-color:'+colours[stylesIndex]+'; fill-opacity: 0.6; stroke-color:'+colours[stylesIndex]+'; stroke-width: 0.5;');
+            // Add columns for participants, and style them induvidually
+            data.addColumn('number', participant);
+            data.addColumn({type:'string', role:'style'});
 
-        var colours = palette('mpn65', Participants.length)
-
-        var count = 0;
-
-        Participants.forEach(participant => {
-            var dataset = {}
-            var participantData = Conversation[participant][mainData][subData];
-
-            dataset.label = participant;
-
-            dataset.data = []
-
-            labels.forEach(element => {
-                if (participantData.hasOwnProperty(element)) {
-                    dataset.data.push(participantData[element]);
-                }
-                else {
-                    dataset.data.push(0);
-                }
-            });
-
-            dataset.borderWidth = 1;
-            dataset.backgroundColor = ColorHexToRGBOpacity(colours[count], 0.4);
-            dataset.borderColor = ColorHexToRGBOpacity(colours[count], 1);
-            datasets.push(dataset);
-
-            count++;
+            stylesIndex++;
         });
 
-        var data = {
+        // ~~~ Adding datarows ~~~
+        TimeArrays[subData].forEach(element => {
+            var newRow = [];
+            // Column 1: Data name, eg for Days, Monday, Tuesday, etc
 
-            labels: labels,
-            datasets: datasets
-        }
+            if(subData == "Time") {
+                newRow.push(TimeStringToGoogleChartsFormat(element));
+            }
+            else if(subData == "Fulldate"){
+                newRow.push(new Date(Number(element)));
+            }
+            else{
+                newRow.push(String(element));
+            }
+
+            stylesIndex = 0;
+            Participants.forEach(participant => {
+                if (participant == "ConversationTotals") {
+                    return;
+                }
+                // Even Columns: Participant data
+                newRow.push(Conversation[participant][mainData][subData][element]);
+                // Odd Columns: Participant Style
+                newRow.push(styles[stylesIndex]);
+                stylesIndex++;
+            });
+            data.addRow(newRow);
+        });
+
+        var formatterTime = new google.visualization.DateFormat({pattern: "h aa"});
+        formatterTime.format(data, 0);
 
         var options = {
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    },
-                    stacked: true
-                }],
-                xAxes: [{
-                    stacked: true,
-                }]
+            'title':'How Much Pizza I Ate Last Night',
+            'width':947,
+            'height':570,
+            'colors':colours,
+            legend: { position: "bottom" },
+            chartArea: {width: '100%', height: '80%', left:'8%'},
+            isStacked: 'percent',
+            hAxis: {
+                gridlines: {
+                    color:'transparent'
+                },
+                format:'h a',
+                baselineColor: 'transparent',
             },
-            plugins: {
-                stacked100: {
-                    enable: true
-                }
-            }
         };
 
-        var myBarChart = new Chart(ctx, {
-            type: 'bar',
-            data: data,
-            options: options
-        });
+        // Instantiate and draw our chart, passing in some options.
+        var chart = new google.visualization.ColumnChart(ctx);
+        chart.draw(data, options);
     }
+}
+
+function EnabelSubmitButton() {
+    var button = document.getElementById("submitFile");
+    button.removeAttribute("disabled");
 }
 
 // ~~~~~ Helper Functions ~~~~~
@@ -491,10 +537,17 @@ function ColorHexToRGBOpacity(hex, opacity) {
 
 }
 
-function ArrayString2Date(inpArray) {
+function ArrayString2Number(inpArray) {
     var retArray = []
     inpArray.forEach(element =>{
-        retArray.push(new Date(Number(element)))
+        retArray.push(Number(element));
     });
     return retArray;
+}
+
+function TimeStringToGoogleChartsFormat(timeString) {
+    hours = Number(String(timeString).split(':')[0]);
+    mins =  Number(String(timeString).split(':')[1]);
+    
+    return [hours, mins, 0];
 }
