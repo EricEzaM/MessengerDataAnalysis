@@ -247,7 +247,9 @@ function TimeAnalysis(timestamp) {
     var hours = messageDateTime.getHours(); // hour 0-23
     var minutes = messageDateTime.getMinutes(); // minutes 0-59
     minutes = _RoundMinutes(minutes);
-    timeData["Time"] = hours + ":" + minutes;
+    // Timedata is stored as a date so that tooltip formatting can be used in google charts.
+    // 'Timeofday' is a valid format but its options are more limited.
+    timeData["Time"] = new Date(2018, 1, 1).setHours(hours, minutes, 0, 0);
 
     // Full Time - set hours of day to zero so that each message only has date information
     timeData["Fulldate"] = new Date(timestamp).setHours(1, 0, 0, 0);
@@ -424,7 +426,7 @@ function ChartData(mainData, subData) {
 
         // ~~~ Datatable, Columns Setup ~~~
         if (subData == "Time") {
-            data.addColumn('timeofday', 'Data');
+            data.addColumn('datetime', 'Data');
         } 
         else if(subData == "Fulldate"){
             data.addColumn('date','Data')
@@ -453,7 +455,7 @@ function ChartData(mainData, subData) {
             // Column 1: Data name, eg for Days, Monday, Tuesday, etc
 
             if(subData == "Time") {
-                newRow.push(TimeStringToGoogleChartsFormat(element));
+                newRow.push(new Date(Number(element)));
             }
             else if(subData == "Fulldate"){
                 newRow.push(new Date(Number(element)));
@@ -543,11 +545,4 @@ function ArrayString2Number(inpArray) {
         retArray.push(Number(element));
     });
     return retArray;
-}
-
-function TimeStringToGoogleChartsFormat(timeString) {
-    hours = Number(String(timeString).split(':')[0]);
-    mins =  Number(String(timeString).split(':')[1]);
-    
-    return [hours, mins, 0];
 }
