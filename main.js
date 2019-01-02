@@ -3,6 +3,7 @@
 console.log("Last Updated 26-12-2018")
 
 google.charts.load('current', {packages: ['corechart']});
+google.charts.load('current', {'packages':['corechart', 'controls']});
 google.charts.setOnLoadCallback(EnableSubmitButton);
 
 var submitButton = document.getElementById("submitFile"); // submit button
@@ -426,6 +427,7 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
     var colours = palette('mpn65', Participants.length);
     var styles = [];
     var ctx; // location for chart (set later)
+    var view; // Google charts DataView, initialised later
 
     // First column setup
     if (subData == "Time") {
@@ -441,7 +443,8 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
         data.addColumn('string', 'Data');
     }
 
-    // Setup styles of data series
+    // Add other columns. Format:
+    // [Series1] [Series1 Style] [Series2] [Series2 Style]...
     var stylesIndex = 0;
     Participants.forEach(participant =>{
         if (participant == "ConversationTotals") {
@@ -464,55 +467,22 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
     var options = GetChartOptions(mainData, subData, colours);
 
     if (subData) {
-        switch (subData) {
-            case "Day":
-                // Already in timearray
-                break;
-            case "Month":
-                // Already in timearray
-                break;
-            case "Year":
-                // Add all years from first year to now
-                var minYear = Math.min( ...Object.keys(Conversation["ConversationTotals"][mainData][subData]));
-                var maxYear = Math.max( ...Object.keys(Conversation["ConversationTotals"][mainData][subData]));
-                TimeArrays[subData] = [];
-                for (let index = minYear; index <= maxYear; index++) {
-                    TimeArrays[subData].push(String(index))
-                }
-                break;
-            case "Time":
-                if (timeDisplay == "Hours") {
-                    TimeArrays[subData] = Object.keys(Conversation["ConversationTotals"][mainData][subData]["Hours"]);
-                }
-                else{
-                    TimeArrays[subData] = Object.keys(Conversation["ConversationTotals"][mainData][subData]["Minutes"]);
-                }
-                break;
-            case "Fulldate":
-                if (fullDateDisplay == "Days") {
-                    TimeArrays[subData] = Object.keys(Conversation["ConversationTotals"][mainData][subData]["Days"]);
-                }
-                else{
-                    TimeArrays[subData] = Object.keys(Conversation["ConversationTotals"][mainData][subData]["Months"]);
-                }
-                break;
-            default:
-                break;
-        }
+
+        // Add to TimeArrays object depending on the data collected.
+        SetTimeArrays(mainData, subData);
 
         // ~~~ Adding datarows ~~~
         TimeArrays[subData].forEach(element => {
             var newRow = [];
-            // Column 1: Data name, eg for Days, Monday, Tuesday, etc
-            if(subData == "Time") {
-                newRow.push(new Date(Number(element)));
-            }
-            else if(subData == "Fulldate"){
+            // Column 1: Data counted
+            if(subData == "Time" || subData == "Fulldate") {
                 newRow.push(new Date(Number(element)));
             }
             else{
                 newRow.push(String(element));
             }
+
+            // Other columns: [Data][Style] [Data][Style] [Data][Style]
             stylesIndex = 0;
             Participants.forEach(participant => {
                 if (participant == "ConversationTotals") {
@@ -530,30 +500,23 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
                 }
                 // Odd Columns: Participant Style
                 newRow.push(styles[stylesIndex]);
+
                 stylesIndex++;
             });
             data.addRow(newRow);
         });
 
-        // TODO time formatter function
+        // Format tooltips depending on the time. 
         try {
             GetTooltipFormat(subData).format(data, 0);
         } catch (error) {
             console.log("No tooltip formatting required for " + subData + ".")
         }
-        
 
-        // Loop through options passed in and add them to options, 
-        // or override if they already exist.
-        if (optionsOverride) {
-            for (var attribute in optionsOverride) {
-                options[attribute] = optionsOverride[attribute];
-            }
-        }
         // Set the location for the chart
         ctx = document.getElementById("chart_" + mainData + "_" + subData);
     }
-    else {
+    else { // No subData -> Means only mainData needs to be analysed
         // ~~~ Adding datarows ~~~
         var messageData;
         if (mainData == "MessageLengths") {
@@ -567,29 +530,39 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
         fairly similar, but still different, so they each need their own
         set of code */
 
-        var itemsAdded = 0;
         if (mainData == "WordsSentOrdered") {
             for (var element of messageData) {
-                if(element.length >= wordsLengthMin && element.length <= wordsLengthMax) {
-                    var newRow = NonTimeDataRow(element, mainData, styles)
-                    data.addRow(newRow);
-                    itemsAdded++;
-                }
-                if (itemsAdded >= wordsLengthDisplay) {
-                    break;
-                }
+                var newRow = NonTimeDataRow(element, mainData, styles)
+                data.addRow(newRow);
             }
+
+            view = new google.visualization.DataView(data)
+            var filteredView = view.getFilteredRows([{
+                column: 0,
+                test: function (value, row, column, table) {
+                    if (value.length >= wordsLengthMin && element.length <= wordsLengthMax) {
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+            }]);
+            view.setRows(filteredView.slice(0,10))
         }
         else if (mainData == "EmojisSentOrdered") {
             for (var element of messageData) {
                 var newRow = NonTimeDataRow(element, mainData, styles)
                 data.addRow(newRow);
-                itemsAdded++;
-
-                if (itemsAdded >= 10) {
-                    break;
-                }
             }
+
+            view = new google.visualization.DataView(data)
+            if (view.getNumberOfRows() < 10) {
+                view.setRows([...Array(view.getNumberOfRows()).keys()])
+            } else {
+                view.setRows([...Array(10).keys()])
+            }
+            
         }
         else{ // Message Lengths
             for (var element of messageData) {
@@ -598,19 +571,58 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
             }
         }
 
-        if (optionsOverride) {
-            // Loop through options passed in and add them to options, 
-            // or override if they already exist.
-            for (var attribute in optionsOverride) {
-                options[attribute] = optionsOverride[attribute];
-            }
-        }
         // Set the location context for the chart
         ctx = document.getElementById("chart_" + mainData);
     }
+
+    if (mainData == "WordsSentOrdered") {
+        var dashboard = new google.visualization.Dashboard(document.getElementById('dashboard_div'));
+
+        var tableView = new google.visualization.DataView(data)
+        var displayColumns = [0].concat([...
+            Array(data.getNumberOfColumns()).keys()] // e.g. [0,1,2,3,4,5]
+            .filter(n => n%2)); // keep odd numbers only
+        
+        tableView.setColumns(displayColumns);
+
+        var stringFilter = new google.visualization.ControlWrapper({
+            controlType: 'StringFilter',
+            containerId: 'filter_div',
+            options: {
+                filterColumnIndex: 0
+            }
+        });
+
+        var table = new google.visualization.ChartWrapper({
+            chartType: 'Table',
+            containerId: 'table_div',
+            options: {
+                showRowNumber: true,
+                page: 'enable',
+                pageSize: 10
+            }
+        });
+
+        dashboard.bind([stringFilter], [table]);
+        dashboard.draw(tableView);
+    }
+
+    // Loop through options passed in and add them to options, 
+    // or override if they already exist.
+    if (optionsOverride) {
+        for (var attribute in optionsOverride) {
+            options[attribute] = optionsOverride[attribute];
+        }
+    }
+
     // Instantiate and draw chart, passing in the options.
     var chart = new google.visualization.ColumnChart(ctx);
-    chart.draw(data, options);
+    if (view) {
+        chart.draw(view, options);
+    }
+    else{
+        chart.draw(data, options);
+    }
 }
 
 function GetTooltipFormat(subData) {
@@ -625,6 +637,44 @@ function GetTooltipFormat(subData) {
     }
     else{
         return;
+    }
+}
+
+function SetTimeArrays(mainData, subData) {
+    switch (subData) {
+        case "Day":
+            // Already in timearray
+            break;
+        case "Month":
+            // Already in timearray
+            break;
+        case "Year":
+            // Add all years from first year to now
+            var minYear = Math.min( ...Object.keys(Conversation["ConversationTotals"][mainData][subData]));
+            var maxYear = Math.max( ...Object.keys(Conversation["ConversationTotals"][mainData][subData]));
+            TimeArrays[subData] = [];
+            for (let index = minYear; index <= maxYear; index++) {
+                TimeArrays[subData].push(String(index))
+            }
+            break;
+        case "Time":
+            if (timeDisplay == "Hours") {
+                TimeArrays[subData] = Object.keys(Conversation["ConversationTotals"][mainData][subData]["Hours"]);
+            }
+            else{
+                TimeArrays[subData] = Object.keys(Conversation["ConversationTotals"][mainData][subData]["Minutes"]);
+            }
+            break;
+        case "Fulldate":
+            if (fullDateDisplay == "Days") {
+                TimeArrays[subData] = Object.keys(Conversation["ConversationTotals"][mainData][subData]["Days"]);
+            }
+            else{
+                TimeArrays[subData] = Object.keys(Conversation["ConversationTotals"][mainData][subData]["Months"]);
+            }
+            break;
+        default:
+            break;
     }
 }
 
