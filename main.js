@@ -6,8 +6,15 @@ google.charts.load('current', {packages: ['corechart']});
 google.charts.load('current', {'packages':['corechart', 'controls']});
 google.charts.setOnLoadCallback(EnableSubmitButton);
 
-var submitButton = document.getElementById("submitFile"); // submit button
-var selectedFile = document.getElementById("openFile"); // choose file button
+var submitButton = document.getElementById("submit-file"); // submit button
+var selectedFile = document.getElementById("open-file"); // choose file button
+var statusDisplay = {
+    main: document.getElementById("status-display"),
+    chartService: document.getElementById("status-googlechart-load"),
+    analysing: document.getElementById("status-analysing"),
+    complete: document.getElementById("status-complete")
+};
+
 
 var Conversation = {};
 var Participants = [];
@@ -18,10 +25,10 @@ var TimeArrays = {
     'Month': ["January","February","March","April","May","June","July", "August","September","October","November","December"]
 };
 
-var timeDisplay = "Hours" // "Hours"
-var fullDateDisplay = "Months" // "Months"
+var timeDisplay = "Hours"
+var fullDateDisplay = "Months"
 
-var wordsLengthDisplay = 10;
+var wordsDisplay = 15;
 var wordsLengthMin = 4;
 var wordsLengthMax = 20;
 
@@ -38,6 +45,182 @@ var latin_map = {
 };
 
 var LatiniseString = Object.keys(latin_map).join('');
+
+var mainDataCategories = ["TimeData", "MessageLengths", "WordsSent", "EmojisSent"];
+var timeSubData = ["Day", "Month", "Year", "Time", "Fulldate"];
+
+// Div Generation
+
+BuildChartDivs();
+
+function BuildChartDivs() {
+    // Main categories
+    mainDataCategories.forEach(mainCategory => {
+        // Timedata subcategories
+        if (mainCategory == "TimeData") {
+            timeSubData.forEach(timeCategory => {
+                CreateSingleChartDiv(mainCategory, timeCategory);
+            });
+        // No sub categories
+        } else {
+            CreateSingleChartDiv(mainCategory, null)
+        }
+    });
+
+    CreateChartButtonEvents();
+    CreateTimeToggleEvents();
+    InsertTableDivs();
+};
+
+function CreateSingleChartDiv(mainData, subData){
+    var chartContainer = document.getElementById("chart-container");
+
+    // Main buttons + chart container
+
+    if (subData) {
+        chartContainer.innerHTML +=
+            `<div class="mda-spacer"></div>
+            <div id="container-${mainData}-${subData}" class="mda-chart">
+                <div class="d-flex mr-auto">
+                    <button class="btn btn-outline-dark btn-sm btn-normal-cols">Normal Columns</button>
+                    <button class="btn btn-outline-dark btn-sm btn-stacked-cols">Stacked Columns</button>
+                    <button class="btn btn-outline-dark btn-sm btn-100-cols">100% Stacked Columns</button>
+                </div>
+                <div id="chart-${mainData}-${subData}"></div>
+            </div>`;
+    } else {
+        chartContainer.innerHTML +=
+            `<div class="mda-spacer"></div>
+            <div id="container-${mainData}" class="mda-chart">
+                <div class="d-flex mr-auto">
+                    <button class="btn btn-outline-dark btn-sm btn-normal-cols">Normal Columns</button>
+                    <button class="btn btn-outline-dark btn-sm btn-stacked-cols">Stacked Columns</button>
+                    <button class="btn btn-outline-dark btn-sm btn-100-cols">100% Stacked Columns</button>
+                </div>
+                <div id="chart-${mainData}"></div>
+            </div>`;
+    }
+
+    // Subdata specific
+    var parent = subData 
+                ? document.getElementById(`container-${mainData}-${subData}`).querySelector("div")
+                : document.getElementById(`container-${mainData}`).querySelector("div");
+    
+    if (subData == "Time") {
+        var button = document.createElement("button");
+        var firstChild = parent.querySelector("button.btn-normal-cols")
+        button.id = "TimeToggleBtn";
+        button.classList.add("btn", "btn-outline-dark", "btn-sm");
+        button.innerHTML = "Group by 15 minutes";
+        parent.insertBefore(button, firstChild);
+    } else if(subData == "Fulldate") {
+        var button = document.createElement("button");
+        var firstChild = parent.querySelector("button.btn-normal-cols")
+        button.id = "FulldateToggleBtn";
+        button.classList.add("btn", "btn-outline-dark", "btn-sm");
+        button.innerHTML = "Group by Days";
+        parent.insertBefore(button, firstChild);
+    }
+}
+
+// Creating events for chart 
+function CreateChartButtonEvents() {
+    var btnNormal = document.querySelectorAll(".btn-normal-cols")
+    var btnStacked = document.querySelectorAll(".btn-stacked-cols")
+    var btn100 = document.querySelectorAll(".btn-100-cols")
+
+    btnNormal.forEach(button => {
+        button.addEventListener('click', function () {
+            var parentButton = button.parentElement.parentElement.id; // eg container-TimeData-Day
+            var [mainData, subData] = parentButton.replace("container-", '').split('-');
+            var optionsOverride = {
+                isStacked: false
+            };
+            ChartData(mainData, subData, optionsOverride);
+        });
+    });
+
+    btnStacked.forEach(button => {
+        button.addEventListener('click', function () {
+            var parentButton = button.parentElement.parentElement.id; // eg container-TimeData-Day
+            var [mainData, subData] = parentButton.replace("container-", '').split('-');
+            var optionsOverride = {
+                isStacked: true
+            };
+            ChartData(mainData, subData, optionsOverride);
+        });
+    });
+
+    btn100.forEach(button => {
+        button.addEventListener('click', function () {
+            var parentButton = button.parentElement.parentElement.id; // eg container-TimeData-Day
+            var [mainData, subData] = parentButton.replace("container-", '').split('-');
+            var optionsOverride = {
+                isStacked: 'percent'
+            };
+            ChartData(mainData, subData, optionsOverride);
+        });
+    });
+}
+
+function CreateTimeToggleEvents() {
+    document.getElementById("TimeToggleBtn").addEventListener("click", function () {
+        if (timeDisplay == "Minutes") {
+            timeDisplay = "Hours"
+            document.getElementById("TimeToggleBtn").innerHTML = "Group by 15 minutes"
+        } else {
+            timeDisplay = "Minutes"
+            document.getElementById("TimeToggleBtn").innerHTML = "Group by Hours"
+        }
+        ChartData("TimeData", "Time");
+    });
+    
+    // Fulldate toggle
+    document.getElementById("FulldateToggleBtn").addEventListener("click", function () {
+        if (fullDateDisplay == "Months") {
+            fullDateDisplay = "Days"
+            document.getElementById("FulldateToggleBtn").innerHTML = "Group by Months"
+        } else {
+            fullDateDisplay = "Months"
+            document.getElementById("FulldateToggleBtn").innerHTML = "Group by Days"
+        }
+        ChartData("TimeData", "Fulldate");
+    });
+}
+
+function InsertTableDivs() {
+    var TableDiv = document.getElementById("container-WordsSent");
+    TableDiv.innerHTML += 
+    `<div id="WordsSent-dashboard" class="text-center">
+        <div id="WordsSent-filter"></div>
+        <div id="WordsSent-table"></div>
+    </div>`;
+
+    TableDiv = document.getElementById("container-EmojisSent")
+    TableDiv.innerHTML += 
+    `<div id="EmojisSent-dashboard" class="text-center">
+        <div id="EmojisSent-filter"></div>
+        <div id="EmojisSent-table"></div>
+    </div>`
+}
+
+// Event listener for 
+submitButton.addEventListener("click", function () {
+    var fr = new FileReader();
+
+    fr.onload = function () {
+        var InputJSON = JSON.parse(this.result)
+
+        AnalyseConversation(InputJSON);
+    }
+    fr.readAsText(selectedFile.files[0])
+
+    // Change status displays
+    statusDisplay.analysing.removeAttribute("hidden");
+    statusDisplay.complete.setAttribute("hidden", true);
+});
+
+// ~~~~~
 
 function ConversationReset() {
     Conversation = {}
@@ -93,18 +276,7 @@ function ConversationReset() {
         ObjectAddNewValueOrIncrement(this["ConversationTotals"]["MessageLengths"], messageLength);
     }
 
-}
-
-submitButton.addEventListener("click", function () {
-    var fr = new FileReader();
-
-    fr.onload = function () {
-        var InputJSON = JSON.parse(this.result)
-
-        AnalyseConversation(InputJSON);
-    }
-    fr.readAsText(selectedFile.files[0])
-});
+};
 
 function AnalyseConversation(inputJSON) {
     var t1 = performance.now();
@@ -169,15 +341,6 @@ function AnalyseConversation(inputJSON) {
     var t3 = performance.now();
     console.log("Analysis done: " + (t3-t2).toFixed(2) + " milliseconds");
 
-    // Sort Words / Emojis
-    Participants.forEach(participant => {
-        Conversation[participant]["WordsSentOrdered"] = ObjectSortByValue(Conversation[participant]["WordsSent"]);
-        Conversation[participant]["EmojisSentOrdered"] = ObjectSortByValue(Conversation[participant]["EmojisSent"]);
-    });
-
-    var t4 = performance.now();
-    console.log("Sorting words/emojis done: " + (t4-t3).toFixed(2) + " milliseconds");
-
     console.log("Raw Data:", Conversation);
 
     ChartData("TimeData", "Day");
@@ -186,11 +349,19 @@ function AnalyseConversation(inputJSON) {
     ChartData("TimeData", "Time");
     ChartData("TimeData", "Fulldate");
     ChartData("MessageLengths");
-    ChartData("WordsSentOrdered");
-    ChartData("EmojisSentOrdered");
+    ChartData("WordsSent");
+    ChartData("EmojisSent");
 
-    var t5 = performance.now();
-    console.log("Charting done: " + (t5-t4).toFixed(2) + " milliseconds");
+    ChartPieData("MessagesSentCount");
+    ChartPieData("WordsSentCount");
+
+    WriteConversationInfo()
+
+    statusDisplay.analysing.setAttribute("hidden", true);
+    statusDisplay.complete.removeAttribute("hidden");
+
+    var t4 = performance.now();
+    console.log("Charting done: " + (t4-t3).toFixed(2) + " milliseconds");
 }
 
 function InitialiseConversation(participants) {
@@ -209,7 +380,7 @@ function InitialiseConversation(participants) {
             var occurrences = participantNameTracker
                 .filter(name => name === participant.name).length
 
-            InitaliseParticipant(participant.name + "_" + occurrences)
+            InitaliseParticipant(participant.name + "-" + occurrences)
         }
         else {
             InitaliseParticipant(participant.name)
@@ -431,25 +602,26 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
 
     // First column setup
     if (subData == "Time") {
-        data.addColumn('datetime', 'Data');
+        data.addColumn('datetime', 'Time');
     } 
     else if(subData == "Fulldate"){
-        data.addColumn('date','Data')
+        data.addColumn('date','Date')
     }
     else if(mainData == "MessageLengths"){
-        data.addColumn('number', 'Data');
+        data.addColumn('number', 'Length');
     }
     else { // day/ month/year
-        data.addColumn('string', 'Data');
+        var displayName = GetColumnDisplayName(mainData, subData);
+        data.addColumn('string', displayName);
     }
-
+    
     // Add other columns. Format:
     // [Series1] [Series1 Style] [Series2] [Series2 Style]...
     var stylesIndex = 0;
+
+    // Conv totals always grey
+    colours.unshift("6d6d6d");
     Participants.forEach(participant =>{
-        if (participant == "ConversationTotals") {
-            return;
-        }
         // Add styles for each series using the colours generated from palette()
         styles.push(
             'fill-color:'+ colours[stylesIndex]+
@@ -485,9 +657,6 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
             // Other columns: [Data][Style] [Data][Style] [Data][Style]
             stylesIndex = 0;
             Participants.forEach(participant => {
-                if (participant == "ConversationTotals") {
-                    return;
-                }
                 // Even Columns: Participant data
                 if (subData == "Time") {
                     newRow.push(Conversation[participant][mainData][subData][timeDisplay][element]);
@@ -514,30 +683,80 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
         }
 
         // Set the location for the chart
-        ctx = document.getElementById("chart_" + mainData + "_" + subData);
+        ctx = document.getElementById("chart-" + mainData + "-" + subData);
     }
     else { // No subData -> Means only mainData needs to be analysed
         // ~~~ Adding datarows ~~~
-        var messageData;
-        if (mainData == "MessageLengths") {
-            messageData = Object.keys(Conversation["ConversationTotals"][mainData]);
-        }
-        else{
-            messageData = Conversation["ConversationTotals"][mainData];
-        }
+        var messageData = Object.keys(Conversation["ConversationTotals"][mainData]);
 
+        if (mainData == "MessageLengths") {
+            messageData = ArrayString2Number(messageData);
+        }
+        
         /* This is a bit messy. Words, Emojis and Message lengths code is all
         fairly similar, but still different, so they each need their own
         set of code */
 
-        if (mainData == "WordsSentOrdered") {
-            for (var element of messageData) {
-                var newRow = NonTimeDataRow(element, mainData, styles)
-                data.addRow(newRow);
-            }
+        for (var element of messageData) {
+            var newRow = NonTimeDataRow(element, mainData, styles)
+            data.addRow(newRow);
+        }
+
+        if (mainData == "WordsSent" || mainData == "EmojisSent") {  
+            // Sort according to ConversationTotals
+            data.sort([{column: 1, desc: true}]);
 
             view = new google.visualization.DataView(data)
-            var filteredView = view.getFilteredRows([{
+
+            // Do different things depending of if Words or Emojis
+            switch (mainData) {
+                case "WordsSent":
+                    // For words, filter by the min/max lenght specified
+                    var filteredView = view.getFilteredRows([{
+                        column: 0,
+                        test: function (value, row, column, table) {
+                            if (value.length >= wordsLengthMin && element.length <= wordsLengthMax) {
+                                return true;
+                            }
+                            else{
+                                return false;
+                            }
+                        }
+                    }]);
+                    // Set the rows to the display limit specified.
+                    // If words availables is less than words display, show that many
+                    if (view.getNumberOfRows() < wordsDisplay) {
+                        view.setRows([...Array(view.getNumberOfRows()).keys()])
+                    } else {
+                        view.setRows(filteredView.slice(0, wordsDisplay))
+                    }
+
+                    break;
+                case "EmojisSent":
+                    // If words availables is less than 10, show that many
+                    if (view.getNumberOfRows() < 20) {
+                        view.setRows([...Array(view.getNumberOfRows()).keys()])
+                    } else {
+                        view.setRows([...Array(20).keys()])
+                    }
+
+                    break;
+                
+                default:
+                    break;
+            }
+        }
+
+        // Set the location context for the chart
+        ctx = document.getElementById("chart-" + mainData);
+    }
+
+    if (mainData == "WordsSent" || mainData == "EmojisSent") {
+        var dashboard = new google.visualization.Dashboard(document.getElementById(mainData + "-dashboard"));
+        var tableView = new google.visualization.DataView(data)
+        
+        if (mainData == "WordsSent") {
+            var filteredView = tableView.getFilteredRows([{
                 column: 0,
                 test: function (value, row, column, table) {
                     if (value.length >= wordsLengthMin && element.length <= wordsLengthMax) {
@@ -547,47 +766,21 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
                         return false;
                     }
                 }
+                
             }]);
-            view.setRows(filteredView.slice(0,10))
-        }
-        else if (mainData == "EmojisSentOrdered") {
-            for (var element of messageData) {
-                var newRow = NonTimeDataRow(element, mainData, styles)
-                data.addRow(newRow);
-            }
 
-            view = new google.visualization.DataView(data)
-            if (view.getNumberOfRows() < 10) {
-                view.setRows([...Array(view.getNumberOfRows()).keys()])
-            } else {
-                view.setRows([...Array(10).keys()])
-            }
-            
-        }
-        else{ // Message Lengths
-            for (var element of messageData) {
-                var newRow = NonTimeDataRow(Number(element), mainData, styles)
-                data.addRow(newRow);
-            }
+            tableView.setRows(filteredView);
         }
 
-        // Set the location context for the chart
-        ctx = document.getElementById("chart_" + mainData);
-    }
-
-    if (mainData == "WordsSentOrdered") {
-        var dashboard = new google.visualization.Dashboard(document.getElementById('dashboard_div'));
-
-        var tableView = new google.visualization.DataView(data)
         var displayColumns = [0].concat([...
             Array(data.getNumberOfColumns()).keys()] // e.g. [0,1,2,3,4,5]
             .filter(n => n%2)); // keep odd numbers only
         
         tableView.setColumns(displayColumns);
-
+        
         var stringFilter = new google.visualization.ControlWrapper({
             controlType: 'StringFilter',
-            containerId: 'filter_div',
+            containerId: mainData + '-filter',
             options: {
                 filterColumnIndex: 0
             }
@@ -595,11 +788,15 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
 
         var table = new google.visualization.ChartWrapper({
             chartType: 'Table',
-            containerId: 'table_div',
+            containerId: mainData + '-table',
             options: {
                 showRowNumber: true,
                 page: 'enable',
-                pageSize: 10
+                pageSize: 10,
+                allowHtml: true,
+                cssClassNames: {
+                    tableCell: 'emoji-font'
+                }
             }
         });
 
@@ -618,10 +815,76 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
     // Instantiate and draw chart, passing in the options.
     var chart = new google.visualization.ColumnChart(ctx);
     if (view) {
+        // Remove ConversationTotals from being displayed
+        var displayColumns = [...Array(data.getNumberOfColumns()).keys()];
+        displayColumns.splice(1,1);
+        view.setColumns(displayColumns);
+        // CHart
         chart.draw(view, options);
     }
     else{
+        // Remove conversation totals from being displayed.
+        data.removeColumn(1);
+        // Chart
         chart.draw(data, options);
+    }
+}
+
+function ChartPieData(mainData) {
+    var ctx  = document.getElementById("chart-" + mainData)
+    var data = new google.visualization.DataTable();
+    var styles = [];
+
+    // Adding Columns
+    data.addColumn('string', 'Person');
+    data.addColumn('number', 'Sent');
+    
+    // Styles
+    var colours = palette('mpn65', Participants.length);
+
+    // Adding Rows
+    Participants.forEach(participant => {
+        // Skip ConvTotals
+        if (participant == "ConversationTotals") {
+            return;
+        }
+        // Get data, depending on which chart to plot
+        var pieData;
+        if (mainData == "MessagesSentCount") {
+            pieData = Conversation[participant]["MessagesSentCount"];
+        } else {
+            pieData = SumObjectValues(Conversation[participant]["WordsSent"]);
+        }
+        // Add
+        data.addRow([participant, pieData]);
+    });
+
+    var options = GetChartOptions(mainData, null, colours);
+
+    var chart = new google.visualization.PieChart(ctx);
+    chart.draw(data, options);
+};
+
+function GetColumnDisplayName(mainData, subData) {
+    switch (mainData) {
+        case "TimeData":
+            break;
+        case "WordsSent":
+            return "Words";
+        case "EmojisSent":
+            return "Emojis";
+        default:
+            break;
+    }
+    switch (subData) {
+        case "Day":
+            return "Day";
+        case "Month":
+            return "Month";
+        case "Year":
+            return "Year";
+        default:
+            break;
     }
 }
 
@@ -684,13 +947,8 @@ function NonTimeDataRow(element, mainData, styles) {
     
     var stylesIndex = 0;
     Participants.forEach(participant => {
-        if (participant == "ConversationTotals") {
-            return;
-        }
         // Even Columns: Participant data
-        // Replace Ordered as the word data is stored in "WordsSent" object, not "WordsOrdered" array
-        var dataObject = mainData.replace("Ordered","");
-        newRow.push(Conversation[participant][dataObject][element]);
+        newRow.push(Conversation[participant][mainData][element]);
         // Odd Columns: Participant Style
         newRow.push(styles[stylesIndex]);
         stylesIndex++;
@@ -701,10 +959,17 @@ function NonTimeDataRow(element, mainData, styles) {
 
 function GetChartOptions(mainData, subData, colours) {
     var options = {};
+    // remove grey
+    if (colours[0] == "6d6d6d") {
+        colours.shift();
+    }
 
+    var containerWidth = document.getElementById("chart-container").offsetWidth;
+    var pieChartSize = containerWidth*0.5;
+    var titleFontSize = 18;
     // Setting common variables between all charts
-    options.width = 947;
-    options.height = 570;
+    options.width = containerWidth*0.9;
+    options.height = containerWidth*0.6;
     options.legend = { position: "bottom" };
     options.chartArea = {width: '100%', height: '80%', left:'8%'};
     options.colors = colours;
@@ -714,7 +979,7 @@ function GetChartOptions(mainData, subData, colours) {
         baselineColor: 'transparent',
         gridlines:{
             color: 'transparent'
-        }
+        },
     };
 
     options.vAxis = {
@@ -735,6 +1000,8 @@ function GetChartOptions(mainData, subData, colours) {
             case "Time":
                 options.title = "Messages by Time of Day, grouped by " + timeDisplay;
                 options.hAxis.format = 'h a'
+                options.hAxis.minValue = new Date(new Date(2018, 1, 1).setHours(0, 0, 0, 0));
+                options.hAxis.maxValue = new Date(new Date(2018, 1, 1).setHours(23, 59, 0, 0));
                 return options;
             case "Fulldate":
                 options.title = "Messages by date sent, grouped by " + fullDateDisplay;
@@ -748,12 +1015,44 @@ function GetChartOptions(mainData, subData, colours) {
             case "MessageLengths":
                 options.title = 'Lengths of Messages Sent';
                 return options;
-            case "WordsSentOrdered":
-                options.title = `Top ${wordsLengthDisplay} Words by frequency, ${wordsLengthMin} to ${wordsLengthMax} letters long`
+
+            case "WordsSent":
+                options.title = `Top ${wordsDisplay} Words by frequency, ${wordsLengthMin} to ${wordsLengthMax} letters long`;
                 return options;
-            case "EmojisSentOrdered":
-                options.title = "Top 10 Emojis by frequency"
+
+            case "EmojisSent":
+                options.title = "Top 20 Emojis by frequency";
+                options.hAxis.textStyle = {
+                    fontName:"Segoe UI Emoji",
+                    fontSize: 18
+                };
+                options.tooltip = {
+                    textStyle:{
+                        fontName: window.navigator.platform.includes("Mac") ? "Apple Color Emoji" : "Segoe UI Emoji"
+                    }
+                };
                 return options;
+
+            case "MessagesSentCount":
+                options.title = "Messages Sent";
+                options.width = pieChartSize*0.9;
+                options.height = pieChartSize*0.6;
+                options.legend = { position: ''};
+                options.titleTextStyle = {
+                    fontSize: titleFontSize,
+                };
+                return options;
+
+            case "WordsSentCount":
+                options.title = "Words Sent";
+                options.width = pieChartSize*0.9;
+                options.height = pieChartSize*0.6;
+                options.legend = { position: '' };
+                options.titleTextStyle = {
+                    fontSize: titleFontSize,
+                };
+                return options;
+
             default:
                 break;
         }
@@ -775,8 +1074,8 @@ function noStackedCharts(){
     ChartData("TimeData", "Time", commonOptions);
     ChartData("TimeData", "Fulldate", commonOptions);
     ChartData("MessageLengths", null, commonOptions);
-    ChartData("WordsSentOrdered", null, commonOptions);
-    ChartData("EmojisSentOrdered", null, commonOptions);
+    ChartData("WordsSent", null, commonOptions);
+    ChartData("EmojisSent", null, commonOptions);
 }
 
 function normalStackedCharts(){
@@ -790,8 +1089,8 @@ function normalStackedCharts(){
     ChartData("TimeData", "Time", commonOptions);
     ChartData("TimeData", "Fulldate", commonOptions);
     ChartData("MessageLengths", null, commonOptions);
-    ChartData("WordsSentOrdered", null, commonOptions);
-    ChartData("EmojisSentOrdered", null, commonOptions);
+    ChartData("WordsSent", null, commonOptions);
+    ChartData("EmojisSent", null, commonOptions);
 }
 
 function fullStackedCharts(){
@@ -805,19 +1104,25 @@ function fullStackedCharts(){
     ChartData("TimeData", "Time", commonOptions);
     ChartData("TimeData", "Fulldate", commonOptions);
     ChartData("MessageLengths", null, commonOptions);
-    ChartData("WordsSentOrdered", null, commonOptions);
-    ChartData("EmojisSentOrdered", null, commonOptions);
+    ChartData("WordsSent", null, commonOptions);
+    ChartData("EmojisSent", null, commonOptions);
 }
 
 // ~~~~~ Helper Functions ~~~~~
 
-function ObjectSortByValue(content) {
-    return Object
-        .keys(content)
-        .sort(function (a, b) {
-            return content[a] - content[b]
-        })
-        .reverse();
+function WriteConversationInfo(){
+    var totalMessages = Conversation["ConversationTotals"]["MessagesSentCount"];
+    var totalWords = SumObjectValues(Conversation["ConversationTotals"]["WordsSent"]);
+    var uniqueWords = Object.keys(Conversation["ConversationTotals"]["WordsSent"]).length;
+    var totalEmojis = SumObjectValues(Conversation["ConversationTotals"]["EmojisSent"]);
+    var uniqueEmojis = Object.keys(Conversation["ConversationTotals"]["EmojisSent"]).length;
+
+    document.getElementById("conversation-info").innerHTML = 
+    `<p><strong>Total Messages: </strong>${totalMessages.toLocaleString()}</p>
+    <p><strong>Total Words: </strong>${totalWords.toLocaleString()}</p>
+    <p><strong>Unique Words: </strong>${uniqueWords.toLocaleString()}</p>
+    <p><strong>Total Emojis: </strong>${totalEmojis.toLocaleString()}</p>
+    <p><strong>Unique Emojis: </strong>${uniqueEmojis.toLocaleString()}</p>`;
 }
 
 function ObjectAddNewValueOrIncrement(ObjectRef, keyValue) {
@@ -848,6 +1153,19 @@ function ArrayString2Number(inpArray) {
 }
 
 function EnableSubmitButton() {
-    var button = document.getElementById("submitFile");
+    var button = document.getElementById("submit-file");
     button.removeAttribute("disabled");
+
+    statusDisplay.chartService.setAttribute("hidden", true)
 }
+
+function SumObjectValues( obj ) {
+    var sum = 0;
+    for (var element in obj) {
+        if (obj.hasOwnProperty(element)) {
+            sum += parseInt(obj[element]);
+        }
+    }
+    return sum;
+};
+
