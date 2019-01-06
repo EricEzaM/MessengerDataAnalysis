@@ -295,3 +295,12 @@ img {
         border-left: 6px solid var(--success);
     }
 }
+
+.ml-50pc{
+    margin-left: 35%;
+}
+
+.w-05{
+    width: 5%;
+    min-width: 70px;
+}

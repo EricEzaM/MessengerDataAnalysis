@@ -29,8 +29,11 @@ var timeDisplay = "Hours"
 var fullDateDisplay = "Months"
 
 var wordsDisplay = 15;
-var wordsLengthMin = 4;
+var wordsLengthMin = 1;
 var wordsLengthMax = 20;
+
+var messageLengthsMin = 0;
+var messageLengthsMax = 10;
 
 var latin_map = {
     "à": "a", "è": "e", "ì": "i", "ò": "o", "ù": "u", "À": "A", "È": "E",
@@ -67,9 +70,10 @@ function BuildChartDivs() {
         }
     });
 
+    InsertTableDivs();
     CreateChartButtonEvents();
     CreateTimeToggleEvents();
-    InsertTableDivs();
+    InsertWordChartOptions();
 };
 
 function CreateSingleChartDiv(mainData, subData){
@@ -81,24 +85,39 @@ function CreateSingleChartDiv(mainData, subData){
         chartContainer.innerHTML +=
             `<div class="mda-spacer"></div>
             <div id="container-${mainData}-${subData}" class="mda-chart">
-                <div class="d-flex mr-auto">
-                    <button class="btn btn-outline-dark btn-sm btn-normal-cols">Normal Columns</button>
-                    <button class="btn btn-outline-dark btn-sm btn-stacked-cols">Stacked Columns</button>
-                    <button class="btn btn-outline-dark btn-sm btn-100-cols">100% Stacked Columns</button>
+                <div class="d-flex">
+                    <h4 class="chart-title">Test Title For Charts 123</h4>
+                    <div class="btn-group ml-auto">
+                        <button type="button" class="active btn btn-outline-dark btn-sm btn-normal-cols">Normal Columns</button>
+                        <button type="button" class="btn btn-outline-dark btn-sm btn-stacked-cols">Stacked Columns</button>
+                        <button type="button" class="btn btn-outline-dark btn-sm btn-100-cols">100% Stacked Columns</button>
+                    </div>
                 </div>
-                <div id="chart-${mainData}-${subData}"></div>
+                <div class="d-flex d-row justify-content-center">
+                    <div id="chart-${mainData}-${subData}"></div>
+                </div>
             </div>`;
     } else {
         chartContainer.innerHTML +=
             `<div class="mda-spacer"></div>
             <div id="container-${mainData}" class="mda-chart">
-                <div class="d-flex mr-auto">
-                    <button class="btn btn-outline-dark btn-sm btn-normal-cols">Normal Columns</button>
-                    <button class="btn btn-outline-dark btn-sm btn-stacked-cols">Stacked Columns</button>
-                    <button class="btn btn-outline-dark btn-sm btn-100-cols">100% Stacked Columns</button>
+                <div class="d-flex">
+                    <h4 class="chart-title">Test Title For Charts 123</h4>
+                    <div class="btn-group ml-auto">
+                        <button type="button" class="active btn btn-outline-dark btn-sm btn-normal-cols">Normal Columns</button>
+                        <button type="button" class="btn btn-outline-dark btn-sm btn-stacked-cols">Stacked Columns</button>
+                        <button type="button" class="btn btn-outline-dark btn-sm btn-100-cols">100% Stacked Columns</button>
+                    </div>
                 </div>
-                <div id="chart-${mainData}"></div>
+                <div class="d-flex d-row justify-content-center">
+                    <div id="chart-${mainData}"></div>
+                </div>
             </div>`;
+    }
+
+    if (subData == "Time" || subData == "Fulldate") {
+        chartContainer.querySelector(`#container-${mainData}-${subData} div.btn-group`).classList.remove("ml-auto");
+        chartContainer.querySelector(`#container-${mainData}-${subData} div.btn-group`).classList.add("ml-2");
     }
 
     // Subdata specific
@@ -108,16 +127,16 @@ function CreateSingleChartDiv(mainData, subData){
     
     if (subData == "Time") {
         var button = document.createElement("button");
-        var firstChild = parent.querySelector("button.btn-normal-cols")
+        var firstChild = parent.querySelector(".btn-group")
         button.id = "TimeToggleBtn";
-        button.classList.add("btn", "btn-outline-dark", "btn-sm");
+        button.classList.add("btn", "btn-outline-dark", "btn-sm", "ml-auto");
         button.innerHTML = "Group by 15 minutes";
         parent.insertBefore(button, firstChild);
     } else if(subData == "Fulldate") {
         var button = document.createElement("button");
-        var firstChild = parent.querySelector("button.btn-normal-cols")
+        var firstChild = parent.querySelector(".btn-group")
         button.id = "FulldateToggleBtn";
-        button.classList.add("btn", "btn-outline-dark", "btn-sm");
+        button.classList.add("btn", "btn-outline-dark", "btn-sm", "ml-auto");
         button.innerHTML = "Group by Days";
         parent.insertBefore(button, firstChild);
     }
@@ -125,13 +144,20 @@ function CreateSingleChartDiv(mainData, subData){
 
 // Creating events for chart 
 function CreateChartButtonEvents() {
-    var btnNormal = document.querySelectorAll(".btn-normal-cols")
-    var btnStacked = document.querySelectorAll(".btn-stacked-cols")
-    var btn100 = document.querySelectorAll(".btn-100-cols")
+    var btnNormal = document.querySelectorAll(".btn-normal-cols");
+    var btnStacked = document.querySelectorAll(".btn-stacked-cols");
+    var btn100 = document.querySelectorAll(".btn-100-cols");
 
     btnNormal.forEach(button => {
         button.addEventListener('click', function () {
-            var parentButton = button.parentElement.parentElement.id; // eg container-TimeData-Day
+            // remove active look from other button, add it to this button.
+            for (const sibling of button.parentNode.children) {
+                sibling.classList.remove("active");
+            }
+            button.classList.add("active");
+
+            // Get the mainData and subData for passing into charting.
+            var parentButton = button.parentElement.parentElement.parentElement.id; // eg container-TimeData-Day
             var [mainData, subData] = parentButton.replace("container-", '').split('-');
             var optionsOverride = {
                 isStacked: false
@@ -142,7 +168,14 @@ function CreateChartButtonEvents() {
 
     btnStacked.forEach(button => {
         button.addEventListener('click', function () {
-            var parentButton = button.parentElement.parentElement.id; // eg container-TimeData-Day
+            // remove active look from other button, add it to this button.
+            for (const sibling of button.parentNode.children) {
+                sibling.classList.remove("active");
+            }
+            button.classList.add("active");
+
+            // Get the mainData and subData for passing into charting.
+            var parentButton = button.parentElement.parentElement.parentElement.id; // eg container-TimeData-Day
             var [mainData, subData] = parentButton.replace("container-", '').split('-');
             var optionsOverride = {
                 isStacked: true
@@ -153,7 +186,14 @@ function CreateChartButtonEvents() {
 
     btn100.forEach(button => {
         button.addEventListener('click', function () {
-            var parentButton = button.parentElement.parentElement.id; // eg container-TimeData-Day
+            // remove active look from other button, add it to this button.
+            for (const sibling of button.parentNode.children) {
+                sibling.classList.remove("active");
+            }
+            button.classList.add("active");
+            
+            // Get the mainData and subData for passing into charting.
+            var parentButton = button.parentElement.parentElement.parentElement.id; // eg container-TimeData-Day
             var [mainData, subData] = parentButton.replace("container-", '').split('-');
             var optionsOverride = {
                 isStacked: 'percent'
@@ -190,6 +230,7 @@ function CreateTimeToggleEvents() {
 
 function InsertTableDivs() {
     var TableDiv = document.getElementById("container-WordsSent");
+
     TableDiv.innerHTML += 
     `<div id="WordsSent-dashboard" class="text-center">
         <div id="WordsSent-filter"></div>
@@ -204,7 +245,51 @@ function InsertTableDivs() {
     </div>`
 }
 
-// Event listener for 
+function InsertWordChartOptions() {
+    var parent = document.getElementById("chart-WordsSent").parentElement.parentElement
+    var child = document.getElementById("chart-WordsSent").parentElement
+    var node = document.createElement("div")
+    node.innerHTML =
+    `<p>Word length: <input id="words-min" type="number" name="quantity" value="1" class="form-control d-inline-block w-05"></input> to <input id="words-max" type="number" name="quantity" value="20" class="form-control d-inline-block w-05"> characters.</p>`;
+    node.classList.add("d-flex", "flex-row-reverse", "text-right", "mt-2")
+    parent.insertBefore(node, child);
+
+    // Create change events
+    var wordsMin =document.getElementById("words-min");
+    var wordsMax =document.getElementById("words-max");
+    wordsMin.addEventListener("change", function () {
+        wordsLengthMin = parseInt(wordsMin.value)
+        ChartData("WordsSent")
+    });
+    wordsMax.addEventListener("change", function () {
+        wordsLengthMax = parseInt(wordsMax.value)
+        ChartData("WordsSent")
+    });
+}
+
+function InsertMessageLengthChartOptions() {
+    var parent = document.getElementById("chart-MessageLengths").parentElement.parentElement
+    var child = document.getElementById("chart-MessageLengths").parentElement
+    var node = document.createElement("div")
+    node.innerHTML =
+    `<p>Chart Range: <input id="lengths-min" type="number" name="quantity" value="1" class="form-control d-inline-block w-05"></input> to <input id="lengths-max" type="number" name="quantity" value="20" class="form-control d-inline-block w-05"> words long.</p>`;
+    node.classList.add("d-flex", "flex-row-reverse", "text-right", "mt-2")
+    parent.insertBefore(node, child);
+
+    // Create change events
+    var wordsMin =document.getElementById("lengths-min");
+    var wordsMax =document.getElementById("lengths-max");
+    wordsMin.addEventListener("change", function () {
+        wordsLengthMin = parseInt(wordsMin.value)
+        ChartData("MessageLengths")
+    });
+    wordsMax.addEventListener("change", function () {
+        wordsLengthMax = parseInt(wordsMax.value)
+        ChartData("MessagesLengths")
+    });
+}
+
+// Event listener for "start"
 submitButton.addEventListener("click", function () {
     var fr = new FileReader();
 
@@ -691,6 +776,8 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
 
         if (mainData == "MessageLengths") {
             messageData = ArrayString2Number(messageData);
+            messageLengthsMin = 0;
+            messageLengthsMax = messageData.length;
         }
         
         /* This is a bit messy. Words, Emojis and Message lengths code is all
@@ -712,17 +799,7 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
             switch (mainData) {
                 case "WordsSent":
                     // For words, filter by the min/max lenght specified
-                    var filteredView = view.getFilteredRows([{
-                        column: 0,
-                        test: function (value, row, column, table) {
-                            if (value.length >= wordsLengthMin && element.length <= wordsLengthMax) {
-                                return true;
-                            }
-                            else{
-                                return false;
-                            }
-                        }
-                    }]);
+                    var filteredView = GetWordsFilteredRows(view);
                     // Set the rows to the display limit specified.
                     // If words availables is less than words display, show that many
                     if (view.getNumberOfRows() < wordsDisplay) {
@@ -756,18 +833,7 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
         var tableView = new google.visualization.DataView(data)
         
         if (mainData == "WordsSent") {
-            var filteredView = tableView.getFilteredRows([{
-                column: 0,
-                test: function (value, row, column, table) {
-                    if (value.length >= wordsLengthMin && element.length <= wordsLengthMax) {
-                        return true;
-                    }
-                    else{
-                        return false;
-                    }
-                }
-                
-            }]);
+            var filteredView = GetWordsFilteredRows(tableView);
 
             tableView.setRows(filteredView);
         }
@@ -812,6 +878,15 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
         }
     }
 
+    var chartTitle = GetChartTitle(mainData, subData);
+    var titleTags;
+    if (subData) {
+        titleTags = document.getElementById(`container-${mainData}-${subData}`).querySelector(".chart-title").innerHTML = chartTitle;
+    } else {
+        titleTags = document.getElementById(`container-${mainData}`).querySelector(".chart-title").innerHTML = chartTitle;
+    }
+    
+
     // Instantiate and draw chart, passing in the options.
     var chart = new google.visualization.ColumnChart(ctx);
     if (view) {
@@ -819,7 +894,7 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
         var displayColumns = [...Array(data.getNumberOfColumns()).keys()];
         displayColumns.splice(1,1);
         view.setColumns(displayColumns);
-        // CHart
+        // Chart
         chart.draw(view, options);
     }
     else{
@@ -989,22 +1064,17 @@ function GetChartOptions(mainData, subData, colours) {
     if (subData) {
         switch (subData) {
             case "Day":
-                options.title = 'Messages by Day of the Week';
                 return options;
             case "Month":
-                options.title = "Messages by Month of the Year"
                 return options;
             case "Year":
-                options.title = "Messages by Year"
                 return options;
             case "Time":
-                options.title = "Messages by Time of Day, grouped by " + timeDisplay;
                 options.hAxis.format = 'h a'
                 options.hAxis.minValue = new Date(new Date(2018, 1, 1).setHours(0, 0, 0, 0));
                 options.hAxis.maxValue = new Date(new Date(2018, 1, 1).setHours(23, 59, 0, 0));
                 return options;
             case "Fulldate":
-                options.title = "Messages by date sent, grouped by " + fullDateDisplay;
                 return options;
             default:
                 break;
@@ -1013,15 +1083,16 @@ function GetChartOptions(mainData, subData, colours) {
     else {
         switch (mainData) {
             case "MessageLengths":
-                options.title = 'Lengths of Messages Sent';
+                options.hAxis.viewWindow = {
+                    min: messageLengthsMin,
+                    max: messageLengthsMax
+                };
                 return options;
 
             case "WordsSent":
-                options.title = `Top ${wordsDisplay} Words by frequency, ${wordsLengthMin} to ${wordsLengthMax} letters long`;
                 return options;
 
             case "EmojisSent":
-                options.title = "Top 20 Emojis by frequency";
                 options.hAxis.textStyle = {
                     fontName:"Segoe UI Emoji",
                     fontSize: 18
@@ -1034,7 +1105,6 @@ function GetChartOptions(mainData, subData, colours) {
                 return options;
 
             case "MessagesSentCount":
-                options.title = "Messages Sent";
                 options.width = pieChartSize*0.9;
                 options.height = pieChartSize*0.6;
                 options.legend = { position: ''};
@@ -1044,7 +1114,6 @@ function GetChartOptions(mainData, subData, colours) {
                 return options;
 
             case "WordsSentCount":
-                options.title = "Words Sent";
                 options.width = pieChartSize*0.9;
                 options.height = pieChartSize*0.6;
                 options.legend = { position: '' };
@@ -1059,53 +1128,68 @@ function GetChartOptions(mainData, subData, colours) {
     }
 }
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+function GetChartTitle(mainData, subData) {
+    var title;
 
-// TODO: Remove onclick from HTML file and add event listeners
-
-function noStackedCharts(){
-    var commonOptions = {
-        isStacked: false
-    };
-
-    ChartData("TimeData", "Day", commonOptions);
-    ChartData("TimeData", "Month", commonOptions);
-    ChartData("TimeData", "Year", commonOptions);
-    ChartData("TimeData", "Time", commonOptions);
-    ChartData("TimeData", "Fulldate", commonOptions);
-    ChartData("MessageLengths", null, commonOptions);
-    ChartData("WordsSent", null, commonOptions);
-    ChartData("EmojisSent", null, commonOptions);
+    if (subData) {
+        switch (subData) {
+            case "Day":
+                title = 'Messages by Day of the Week';
+                return title;
+            case "Month":
+                title = "Messages by Month of the Year"
+                return title;
+            case "Year":
+                title = "Messages by Year"
+                return title;
+            case "Time":
+                title = "Messages by Time of Day, grouped by " + timeDisplay;
+                return title;
+            case "Fulldate":
+                title = "Messages by date sent, grouped by " + fullDateDisplay;
+                return title;
+            default:
+                break;
+        }
+    }
+    else {
+        switch (mainData) {
+            case "MessageLengths":
+                title = 'Lengths of Messages Sent';
+                return title;
+            case "WordsSent":
+                title = `Top ${wordsDisplay} Words by frequency, ${wordsLengthMin} to ${wordsLengthMax} letters long`;
+                return title;
+            case "EmojisSent":
+                title = "Top 20 Emojis by frequency";
+                return title;
+            case "MessagesSentCount":
+                title = "Messages Sent";
+                return title;
+            case "WordsSentCount":
+                title = "Words Sent";
+                return title;
+            default:
+                break;
+        }
+    }
 }
 
-function normalStackedCharts(){
-    var commonOptions = {
-        isStacked: true
-    };
+function GetWordsFilteredRows(view) {
+    var filtered = view.getFilteredRows([{
+        column: 0,
+        test: function (value, row, column, table) {
+            if (value.length >= wordsLengthMin && value.length <= wordsLengthMax) {
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        
+    }]);
 
-    ChartData("TimeData", "Day", commonOptions);
-    ChartData("TimeData", "Month", commonOptions);
-    ChartData("TimeData", "Year", commonOptions);
-    ChartData("TimeData", "Time", commonOptions);
-    ChartData("TimeData", "Fulldate", commonOptions);
-    ChartData("MessageLengths", null, commonOptions);
-    ChartData("WordsSent", null, commonOptions);
-    ChartData("EmojisSent", null, commonOptions);
-}
-
-function fullStackedCharts(){
-    var commonOptions = {
-        isStacked: 'percent'
-    };
-
-    ChartData("TimeData", "Day", commonOptions);
-    ChartData("TimeData", "Month", commonOptions);
-    ChartData("TimeData", "Year", commonOptions);
-    ChartData("TimeData", "Time", commonOptions);
-    ChartData("TimeData", "Fulldate", commonOptions);
-    ChartData("MessageLengths", null, commonOptions);
-    ChartData("WordsSent", null, commonOptions);
-    ChartData("EmojisSent", null, commonOptions);
+    return filtered;
 }
 
 // ~~~~~ Helper Functions ~~~~~
@@ -1168,4 +1252,3 @@ function SumObjectValues( obj ) {
     }
     return sum;
 };
-
