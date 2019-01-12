@@ -8,6 +8,9 @@ google.charts.setOnLoadCallback(EnableSubmitButton);
 
 var submitButton = document.getElementById("submit-file"); // submit button
 var selectedFile = document.getElementById("open-file"); // choose file button
+var startDemo = document.getElementById("start-demo-file"); // submit button
+var showEmojiImageTable = document.getElementById("emoji-table-replace");
+
 var statusDisplay = {
     main: document.getElementById("status-display"),
     chartService: document.getElementById("status-googlechart-load"),
@@ -32,8 +35,9 @@ var wordsDisplay = 15;
 var wordsLengthMin = 1;
 var wordsLengthMax = 20;
 
-var messageLengthsMin = 0;
-var messageLengthsMax = 10;
+var emojisDisplay = 20;
+
+var messageLengthsDisplay = 0;
 
 var latin_map = {
     "à": "a", "è": "e", "ì": "i", "ò": "o", "ù": "u", "À": "A", "È": "E",
@@ -74,6 +78,7 @@ function BuildChartDivs() {
     CreateChartButtonEvents();
     CreateTimeToggleEvents();
     InsertWordChartOptions();
+    InsertMessageLengthChartOptions();
 };
 
 function CreateSingleChartDiv(mainData, subData){
@@ -86,7 +91,7 @@ function CreateSingleChartDiv(mainData, subData){
             `<div class="mda-spacer"></div>
             <div id="container-${mainData}-${subData}" class="mda-chart">
                 <div class="d-flex">
-                    <h4 class="chart-title">Test Title For Charts 123</h4>
+                    <h4 class="chart-title">No Data to Chart :(</h4>
                     <div class="btn-group ml-auto">
                         <button type="button" class="active btn btn-outline-dark btn-sm btn-normal-cols">Normal Columns</button>
                         <button type="button" class="btn btn-outline-dark btn-sm btn-stacked-cols">Stacked Columns</button>
@@ -102,7 +107,7 @@ function CreateSingleChartDiv(mainData, subData){
             `<div class="mda-spacer"></div>
             <div id="container-${mainData}" class="mda-chart">
                 <div class="d-flex">
-                    <h4 class="chart-title">Test Title For Charts 123</h4>
+                    <h4 class="chart-title">No Data to Chart :(</h4>
                     <div class="btn-group ml-auto">
                         <button type="button" class="active btn btn-outline-dark btn-sm btn-normal-cols">Normal Columns</button>
                         <button type="button" class="btn btn-outline-dark btn-sm btn-stacked-cols">Stacked Columns</button>
@@ -125,6 +130,7 @@ function CreateSingleChartDiv(mainData, subData){
                 ? document.getElementById(`container-${mainData}-${subData}`).querySelector("div")
                 : document.getElementById(`container-${mainData}`).querySelector("div");
     
+    // Adding buttons for toggling data views
     if (subData == "Time") {
         var button = document.createElement("button");
         var firstChild = parent.querySelector(".btn-group")
@@ -142,7 +148,8 @@ function CreateSingleChartDiv(mainData, subData){
     }
 }
 
-// Creating events for chart 
+// Adding in HTML sections for charts and tables, as well as buttons. 
+// Done in this way so that changes to all elements can be made easily. 
 function CreateChartButtonEvents() {
     var btnNormal = document.querySelectorAll(".btn-normal-cols");
     var btnStacked = document.querySelectorAll(".btn-stacked-cols");
@@ -233,6 +240,7 @@ function InsertTableDivs() {
 
     TableDiv.innerHTML += 
     `<div id="WordsSent-dashboard" class="text-center">
+        <h5><u>Filter for Words sent</u></h5>
         <div id="WordsSent-filter"></div>
         <div id="WordsSent-table"></div>
     </div>`;
@@ -240,9 +248,19 @@ function InsertTableDivs() {
     TableDiv = document.getElementById("container-EmojisSent")
     TableDiv.innerHTML += 
     `<div id="EmojisSent-dashboard" class="text-center">
+        <h5><u>Filter for Emojis sent</u></h5>
         <div id="EmojisSent-filter"></div>
         <div id="EmojisSent-table"></div>
-    </div>`
+        <a href="javascript:void(0);" class="my-2" data-toggle="modal" data-target="#emoji-modal">Having trouble seeing emojis?</a>
+    </div>
+    <table id="emoji-image-table" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;" hidden>
+        <thead id="emoji-image-table-head" class="bg-primary text-light">
+            <th class="px-2">Rank</th>
+            <th class="px-2">Emoji</th>
+        </thead>
+        <tbody id="emoji-image-table-body">
+        </tbody>
+    </table>`;
 }
 
 function InsertWordChartOptions() {
@@ -272,24 +290,47 @@ function InsertMessageLengthChartOptions() {
     var child = document.getElementById("chart-MessageLengths").parentElement
     var node = document.createElement("div")
     node.innerHTML =
-    `<p>Chart Range: <input id="lengths-min" type="number" name="quantity" value="1" class="form-control d-inline-block w-05"></input> to <input id="lengths-max" type="number" name="quantity" value="20" class="form-control d-inline-block w-05"> words long.</p>`;
+    `<p>Chart limit: <input id="lengths-max" type="number" name="quantity" value="0" class="form-control d-inline-block w-05"> words long.</p>`;
     node.classList.add("d-flex", "flex-row-reverse", "text-right", "mt-2")
     parent.insertBefore(node, child);
 
     // Create change events
-    var wordsMin =document.getElementById("lengths-min");
-    var wordsMax =document.getElementById("lengths-max");
-    wordsMin.addEventListener("change", function () {
-        wordsLengthMin = parseInt(wordsMin.value)
-        ChartData("MessageLengths")
-    });
-    wordsMax.addEventListener("change", function () {
-        wordsLengthMax = parseInt(wordsMax.value)
-        ChartData("MessagesLengths")
+    var lengthMax = document.getElementById("lengths-max");
+
+    lengthMax.addEventListener("change", function () {
+        messageLengthsDisplay = Number(lengthMax.value);
+        // var optionsOverride = 
+        // { hAxis: {
+        //     viewWindow: {
+        //         max: messageLengthsDisplay
+        //     }
+        // }};
+        ChartData("MessageLengths", null);
     });
 }
 
-// Event listener for "start"
+// ~~~~~ Events
+
+startDemo.addEventListener("click", function () {
+    var fr = new FileReader();
+
+    fr.onload = function () {
+        var InputJSON = JSON.parse(this.result);
+
+        AnalyseConversation(InputJSON);
+    }
+
+    fetch("./files/demofile.json") 
+        .then(function(data) {
+            fr.readAsText(data);
+        })
+        .catch(function() {
+            // This is where you run code if the server returns any errors
+            console.log("Oops! Didn't get demo file.")
+        });
+});
+
+// Listener for "start"
 submitButton.addEventListener("click", function () {
     var fr = new FileReader();
 
@@ -303,6 +344,16 @@ submitButton.addEventListener("click", function () {
     // Change status displays
     statusDisplay.analysing.removeAttribute("hidden");
     statusDisplay.complete.setAttribute("hidden", true);
+});
+
+// Listener for selecting file - display file name, turn green
+selectedFile.addEventListener("change", function () {
+    ChangeFileSelectLabel();
+});
+
+// Listener for clicking the link to show the backup emoji table.
+showEmojiImageTable.addEventListener("click", function() {
+    document.getElementById("emoji-image-table").removeAttribute("hidden");
 });
 
 // ~~~~~
@@ -321,7 +372,7 @@ function ConversationReset() {
         ObjectAddNewValueOrIncrement(this[senderName]["TimeData"]["Fulldate"]["Days"], timeData["Fulldate"]["Days"]);
         ObjectAddNewValueOrIncrement(this[senderName]["TimeData"]["Fulldate"]["Months"], timeData["Fulldate"]["Months"]);
 
-        // add to overall conversation information
+        // add to overall Conversation information
         ObjectAddNewValueOrIncrement(this["ConversationTotals"]["TimeData"]["Day"], timeData["Day"]);
         ObjectAddNewValueOrIncrement(this["ConversationTotals"]["TimeData"]["Month"], timeData["Month"]);
         ObjectAddNewValueOrIncrement(this["ConversationTotals"]["TimeData"]["Year"], timeData["Year"]);
@@ -383,7 +434,7 @@ function AnalyseConversation(inputJSON) {
 
         /* Add one to the sender message count.
         It is possible for the sender to have been removed 
-        from the conversation, and they will not be in the 
+        from the Conversation, and they will not be in the 
         participant list. This adds them to the data structure 
         in that scenario. */
         try {
@@ -428,17 +479,30 @@ function AnalyseConversation(inputJSON) {
 
     console.log("Raw Data:", Conversation);
 
-    ChartData("TimeData", "Day");
-    ChartData("TimeData", "Month");
-    ChartData("TimeData", "Year");
-    ChartData("TimeData", "Time");
-    ChartData("TimeData", "Fulldate");
-    ChartData("MessageLengths");
-    ChartData("WordsSent");
-    ChartData("EmojisSent");
+    document.querySelector("#analysis-results").removeAttribute("hidden");
 
-    ChartPieData("MessagesSentCount");
-    ChartPieData("WordsSentCount");
+    if (Object.keys(Conversation["ConversationTotals"]["TimeData"]["Fulldate"]).length !== 0) {
+        ChartData("TimeData", "Day");
+        ChartData("TimeData", "Month");
+        ChartData("TimeData", "Year");
+        ChartData("TimeData", "Time");
+        ChartData("TimeData", "Fulldate");
+    }
+    if (Object.keys(Conversation["ConversationTotals"]["MessageLengths"]).length !== 0) {
+        ChartData("MessageLengths");
+    }
+    if (Object.keys(Conversation["ConversationTotals"]["WordsSent"]).length !== 0) {
+        ChartData("WordsSent");
+
+        ChartPieData("MessagesSentCount");
+        ChartPieData("WordsSentCount");
+
+        CreateMessageTypesInfoTable();
+        CreateParticipantWordInfoTable();
+    }
+    if (Object.keys(Conversation["ConversationTotals"]["EmojisSent"]).length !== 0) {
+        ChartData("EmojisSent");
+    }
 
     WriteConversationInfo()
 
@@ -459,7 +523,7 @@ function InitialiseConversation(participants) {
     participants.forEach(participant => {
 
         // Initialise participants, but if their name already exists in the
-        // conversation, adjust it
+        // Conversation, adjust it
         if (participantNameTracker.includes(participant.name)) {
             // Number of occurnces of that name
             var occurrences = participantNameTracker
@@ -498,9 +562,6 @@ function InitaliseParticipant(participantName) {
 
     Conversation[participantName]["WordsSent"] = new Object();
     Conversation[participantName]["EmojisSent"] = new Object();
-
-    Conversation[participantName]["WordsSentOrdered"] = new Object();
-    Conversation[participantName]["EmojisSentOrdered"] = new Object();
 }
 
 function TimeAnalysis(timestamp) {
@@ -720,9 +781,6 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
         stylesIndex++;
     });
 
-    // Get options
-    var options = GetChartOptions(mainData, subData, colours);
-
     if (subData) {
 
         // Add to TimeArrays object depending on the data collected.
@@ -776,8 +834,12 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
 
         if (mainData == "MessageLengths") {
             messageData = ArrayString2Number(messageData);
-            messageLengthsMin = 0;
-            messageLengthsMax = messageData.length;
+            var maxLength = Math.max(...messageData);
+            // For initally setting the correct max value, and for resetting when it hits zero or less
+            if (messageLengthsDisplay <= 0) {
+                document.getElementById("lengths-max").value = maxLength;
+            }
+            messageLengthsDisplay = Number(document.getElementById("lengths-max").value);
         }
         
         /* This is a bit messy. Words, Emojis and Message lengths code is all
@@ -793,7 +855,7 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
             // Sort according to ConversationTotals
             data.sort([{column: 1, desc: true}]);
 
-            view = new google.visualization.DataView(data)
+            view = new google.visualization.DataView(data);
 
             // Do different things depending of if Words or Emojis
             switch (mainData) {
@@ -803,20 +865,20 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
                     // Set the rows to the display limit specified.
                     // If words availables is less than words display, show that many
                     if (view.getNumberOfRows() < wordsDisplay) {
-                        view.setRows([...Array(view.getNumberOfRows()).keys()])
+                        view.setRows([...Array(view.getNumberOfRows()).keys()]);
                     } else {
-                        view.setRows(filteredView.slice(0, wordsDisplay))
+                        view.setRows(filteredView.slice(0, wordsDisplay));
                     }
-
                     break;
-                case "EmojisSent":
-                    // If words availables is less than 10, show that many
-                    if (view.getNumberOfRows() < 20) {
-                        view.setRows([...Array(view.getNumberOfRows()).keys()])
-                    } else {
-                        view.setRows([...Array(20).keys()])
-                    }
 
+                case "EmojisSent":
+                    // If words availables is less than emojisDisplay, show that many
+                    if (view.getNumberOfRows() < emojisDisplay) {
+                        view.setRows([...Array(view.getNumberOfRows()).keys()]);
+                        emojisDisplay = view.getNumberOfRows();
+                    } else {
+                        view.setRows([...Array(emojisDisplay).keys()]);
+                    }
                     break;
                 
                 default:
@@ -861,14 +923,23 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
                 pageSize: 10,
                 allowHtml: true,
                 cssClassNames: {
-                    tableCell: 'emoji-font'
+                    tableCell: 'emoji-font',
+                    headerRow: 'bg-primary text-light'
                 }
             }
         });
 
         dashboard.bind([stringFilter], [table]);
         dashboard.draw(tableView);
+
+        // draw backup image emoji table
+        if (mainData == "EmojisSent") {
+            CreateEmojisImageTable(tableView);
+        }
     }
+
+    // Get options
+    var options = GetChartOptions(mainData, subData, colours);
 
     // Loop through options passed in and add them to options, 
     // or override if they already exist.
@@ -885,7 +956,6 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
     } else {
         titleTags = document.getElementById(`container-${mainData}`).querySelector(".chart-title").innerHTML = chartTitle;
     }
-    
 
     // Instantiate and draw chart, passing in the options.
     var chart = new google.visualization.ColumnChart(ctx);
@@ -898,7 +968,7 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
         chart.draw(view, options);
     }
     else{
-        // Remove conversation totals from being displayed.
+        // Remove Conversation totals from being displayed.
         data.removeColumn(1);
         // Chart
         chart.draw(data, options);
@@ -1039,16 +1109,16 @@ function GetChartOptions(mainData, subData, colours) {
         colours.shift();
     }
 
-    var containerWidth = document.getElementById("chart-container").offsetWidth;
+    var containerWidth = document.getElementById("marketing-cards").offsetWidth;
     var pieChartSize = containerWidth*0.5;
     var titleFontSize = 18;
+
     // Setting common variables between all charts
     options.width = containerWidth*0.9;
     options.height = containerWidth*0.6;
     options.legend = { position: "bottom" };
     options.chartArea = {width: '100%', height: '80%', left:'8%'};
     options.colors = colours;
-    // options.isStacked = something;
 
     options.hAxis = {
         baselineColor: 'transparent',
@@ -1084,8 +1154,8 @@ function GetChartOptions(mainData, subData, colours) {
         switch (mainData) {
             case "MessageLengths":
                 options.hAxis.viewWindow = {
-                    min: messageLengthsMin,
-                    max: messageLengthsMax
+                    min: 0,
+                    max: messageLengthsDisplay
                 };
                 return options;
 
@@ -1192,6 +1262,70 @@ function GetWordsFilteredRows(view) {
     return filtered;
 }
 
+// ~~~~~ Custom Tables ~~~~~
+
+function CreateMessageTypesInfoTable(){
+    var messageTypesInfoTable = document.getElementById("message-types-info-body");
+    messageTypesInfoTable.innerHTML = "";
+
+    Participants.forEach(participant => {
+        if (participant != "ConversationTotals") {
+            var textMsg = (Conversation[participant]["MessageContentTypes"]["Text Messages"] === undefined) ? 0 : Conversation[participant]["MessageContentTypes"]["Text Messages"];
+            var photos = (Conversation[participant]["MessageContentTypes"]["Photos"] === undefined) ? 0 : Conversation[participant]["MessageContentTypes"]["Photos"];
+            var videos = (Conversation[participant]["MessageContentTypes"]["Videos"] === undefined) ? 0 : Conversation[participant]["MessageContentTypes"]["Videos"];
+            var stickers = (Conversation[participant]["MessageContentTypes"]["Stickers"] === undefined) ? 0 : Conversation[participant]["MessageContentTypes"]["Stickers"];
+            var gifs = (Conversation[participant]["MessageContentTypes"]["GIFs"] === undefined) ? 0 : Conversation[participant]["MessageContentTypes"]["GIFs"];
+            var files = (Conversation[participant]["MessageContentTypes"]["Files"] === undefined) ? 0 : Conversation[participant]["MessageContentTypes"]["Files"];
+            var shared = (Conversation[participant]["MessageContentTypes"]["Shared Links"] === undefined) ? 0 : Conversation[participant]["MessageContentTypes"]["Shared Links"];
+            var audio = (Conversation[participant]["MessageContentTypes"]["Audio Files"] === undefined) ? 0 : Conversation[participant]["MessageContentTypes"]["Audio Files"]
+            var plans = (Conversation[participant]["MessageContentTypes"]["Plan (linked date/time)"] === undefined) ? 0 : Conversation[participant]["MessageContentTypes"]["Plan (linked date/time)"]
+
+            var rowHTML = (`<td>${participant}</td><td>${textMsg}</td><td>${photos}</td><td>${videos}</td><td>${stickers}</td><td>${gifs}</td><td>${files}</td><td>${shared}</td><td>${audio}</td><td>${plans}</td>`);
+
+            messageTypesInfoTable.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`);   
+        }        
+    });
+};
+
+function CreateParticipantWordInfoTable(){
+    var participantWordInfoBody = document.getElementById("participant-words-info-body");
+    participantWordInfoBody.innerHTML = "";
+
+    Participants.forEach(participant => {
+        if (participant != "ConversationTotals") {
+            var partMessagesSent = Conversation[participant]["MessagesSentCount"];
+            var partWordsSent = SumObjectValues(Conversation[participant]["WordsSent"]);
+
+            var rowHTML = (`<td>${participant}</td><td>${partMessagesSent}</td><td>${partWordsSent}</td><td>${(partWordsSent/partMessagesSent).toFixed(2)}</td>`);
+
+            participantWordInfoBody.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`);
+        }
+    });
+};
+
+function CreateEmojisImageTable(view) {
+    var emojisImagesTable = document.getElementById("emoji-image-table-body");
+    emojisImagesTable.innerHTML = "";
+
+    var tableHead = document.querySelector('#emoji-image-table-head>tr');
+    Participants.forEach(participant => {
+        tableHead.insertAdjacentHTML('beforeend', `<th class="px-2">${participant}</th>`);
+    });
+
+
+    for (let index = 0; index < emojisDisplay; index++) { // for each emoji in top 20
+        var emoji = view.getValue(index, 0);
+        var rowHTML = `<td>${index + 1}</td><td>${emojione.toImage(emoji)}</td>`;
+        
+        Participants.forEach(participant => {
+            var participantValue = Participants.indexOf(participant) + 1 == null ? 0 : Participants.indexOf(participant) + 1;
+            rowHTML += `<td>${view.getValue(index, participantValue)}</td>`;
+        });
+
+        emojisImagesTable.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`);   
+    }
+}
+
 // ~~~~~ Helper Functions ~~~~~
 
 function WriteConversationInfo(){
@@ -1225,7 +1359,6 @@ function ColorHexToRGBOpacity(hex, opacity) {
     var b = parseInt(hex.substring(4, 6), 16);
 
     return result = `rgba(${r}, ${g}, ${b}, ${opacity})`;
-
 }
 
 function ArrayString2Number(inpArray) {
@@ -1251,4 +1384,9 @@ function SumObjectValues( obj ) {
         }
     }
     return sum;
+};
+
+function ChangeFileSelectLabel() {
+    document.getElementById("open-file-label").innerText = selectedFile.files[0].name;
+    document.getElementById("open-file-label").classList.add("text-success");
 };

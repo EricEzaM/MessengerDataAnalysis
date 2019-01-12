@@ -8,7 +8,6 @@
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-
         gtag('config', 'UA-127622082-1');
     </script>
 
@@ -39,7 +38,7 @@
             </div>
         </div>
         <div class="block header-intro text-light">
-            <div class="container text-center">
+            <div class="text-center">
                 <h3>Welcome to Messenger Data Analysis</h3>
                 <h4 class="h4-c">Take a dive into your Facebook messages and discover your most used words & emojis, message frequency, and more!</h3>
             </div>
@@ -61,7 +60,7 @@
                 <div class="card-body">
                     <img src="./img/no-network.png" class="card-img-top mda-card-img" alt="...">
                     <h5 class="card-title">Runs completely offline</h5>
-                    <p class="card-text">Your data is not uploaded to any server - analysis is done by your computer, locally in your browser. <a href="#">Learn more</a>.</p>
+                    <p class="card-text">Your data is not uploaded to any server - analysis is done by your computer, locally in your browser. <a href="javascript:void(0);" data-toggle="modal" data-target="#learn-more-modal">Learn more</a>.</p>
                 </div>
             </div>
             <div class="card text-center">
@@ -76,17 +75,17 @@
 
     <div id="instructions" class="container">
         <div class="mda-spacer"></div>
-        <div class="card w-75 m-auto start-analysis-box">
+        <div class="card w-75 mx-auto start-analysis-box mb-5">
             <div class="card-body text">
                 <h3 class="text-center">Get Started Now!</h3>
                 <div class="w-75 mt-4 mx-auto">
-                    <p><strong>Step 0.</strong> Analyse a sample file to get a taste of what it can do! <a href="">Click here</a></p>
-                    <p><strong>Step 1.</strong> Download your Messenger data from Facebook. Don't know how? <a href="" data-toggle="modal" data-target="#guide-modal">Click here for a guide</a>!</p>
+                    <p><strong>Step 0.</strong> Analyse a sample file to get a taste of what it can do! <a id="start-demo-file" href="javascript:void(0);">Click here</a></p>
+                    <p><strong>Step 1.</strong> Download your Messenger data from Facebook. Don't know how? <a href="javascript:void(0);" data-toggle="modal" data-target="#guide-modal">Click here for a guide</a>!</p>
                     <p><strong>Step 2.</strong> Browse for your file, then hit "Start" to begin the analysis. It's that easy!</p>
                 </div>
             </div>
             <div class="custom-file w-75 m-auto">
-                <input id="open-file" type="file" class="custom-file-input" accept=".json" onchange="updateStatus(); changeFileSelectLabel()">
+                <input id="open-file" type="file" class="custom-file-input" accept=".json">
                 <label id="open-file-label" class="custom-file-label text-center" for="customFile" >Choose file (.json format only)</label>
             </div>
             <input id="submit-file" type="submit" class="btn btn-success w-25 mx-auto my-3" disabled value="Start">
@@ -110,7 +109,7 @@
                     <div class="mda-tick-height">
                         <div class="mda-tick" role="status"></div>
                     </div>
-                    <p>Complete!</p>
+                    <p>Complete! Results below.</p>
                 </div>
             </div>
         </div>
@@ -156,18 +155,94 @@
             </div>
         </div>
     </div>
+    <!--  Modal - Emoji Display -->
+    <div class="modal fade" id="emoji-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Emoji Display Help</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>If you are running on Windows 7, you might have trouble viewing emojis, and they might appear as a box rather than the emoji itself. This is because Windows 7 does not come with the Segoe UI Emoji font that Windows 10 comes with. It is a font created and trademarked by Microsoft and released with Windows devices. However, if you simply take that font from the Windows 10 "Fonts" folder, you can install it on Windows 7 and get the Emojis to display. However, they will only be displayed in black and white, not full colour.</p>
+                    <a href="./files/seguiemj.ttf">Click here to download the Segeo UI Emoji font</a>
+                    <p>If you do not wish to download the font, you can view your Emojis in a table that uses images of the emojis rather than an Emoji font. I would use the images in the table too, except the Google Charts API does not allow for images to be placed as the labels for charts, so it needs to be a font.</p>
+                    <a id="emoji-table-replace" href="javascript:void(0);">Click here to show the table that used images in place of the default table.</a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--  Modal - Learn more -->
+    <div class="modal fade" id="learn-more-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Keep your data safe - no file upload!</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>This web application runs completely on <a href="https://en.wikipedia.org/wiki/JavaScript">Javascript</a>, which runs in the Browser. Javascript is used to add things such as interactivity to websites, and pretty much every site now uses some form of Javascript.</p>
+                    <p>When you load this web page, you download the Javascript files that will be able to analyse your file. Then, when you select a file to analyse, you don't actually upload it anywhere, you just tell your web browser where it is on your computer.</p>
+                    <blockquote class="blockquote">
+                        <p class="mb-0 mx-5">If you wanted, you could even turn off your internet connection before you select your file, and the application will still work!</p>
+                    </blockquote>
+                    <p>Then when you click start, the browser reads that file and uses the Javascript to analyse it. Your data stays safe on your own computer!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="analysis-results" class="container mb-5" hidden>
+        <div class="mda-spacer"></div>
 
-    <div id="section2" class="container">
-        <p style='overflow:hidden;page-break-before:always;'></p>
+        <!-- General Conversation information -->
+        <div class="text-center">
+            <h3 class="display-4 mb-2">Conversation Information</h3>
+            <div id="conversation-info">
+            </div>
+        </div>
 
         <div class="mda-spacer"></div>
 
-        <div class="">
-            <h3 class="display-4 mb-2">Conversation Information</h3>
-            <div id="conversation-info">
-                
-            </div>
-        </div>
+        <!-- Words/Average Words Table -->
+        <table id="participant-words-info-table" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
+            <thead class="bg-primary text-light">
+                <th class="px-2">Name</th>
+                <th class="px-2">Messages Sent</th>
+                <th class="px-2">Words Sent</th>
+                <th class="px-2">Average Words/Message</th>
+            </thead>
+            <tbody id="participant-words-info-body">
+            </tbody>
+        </table>
+
+        <br>
+        <!-- Message Types Table -->
+        <table id="message-types-info-table" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
+            <thead class="bg-primary text-light">
+                <th class="px-2">Name</th>
+                <th class="px-2">Text Messages</th>
+                <th class="px-2">Photos</th>
+                <th class="px-2">Videos</th>
+                <th class="px-2">Stickers</th>
+                <th class="px-2">GIFs</th>
+                <th class="px-2">Files</th>
+                <th class="px-2">Shared Links</th>
+                <th class="px-2">Audio Files</th>
+                <th class="px-2">Plans</th>
+            </thead>
+            <tbody id="message-types-info-body">
+            </tbody>
+        </table>
 
         <div class="mda-spacer"></div>
 
@@ -183,125 +258,9 @@
             </div>
         </div>
         <!-- End Charts -->
-
     </div>
-
-    <div id="conversationInformation" class="text-center" hidden>
-        <h3 id="conversationTitle" class="display-4">Conversation Information</h3>
-        <br>
-        <p id="info"></p>
-
-        <hr class="my-3 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-
-        <div class="d-inline-block mt-3 mb-3">
-            <div id="pieChartContainer" class="d-flex">
-                <div id="messageSentInfo-chart"></div>
-                <div id="wordsSentInfo-chart"></div>
-            </div>
-        </div>
-
-        <table id="participantWordInfoTable" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
-            <thead class="bg-primary text-light">
-                <th class="px-2">Name</th>
-                <th class="px-2">Messages Sent</th>
-                <th class="px-2">Words Sent</th>
-                <th class="px-2">Average Words/Message</th>
-            </thead>
-            <tbody id="participantWordInfoBody">
-            </tbody>
-        </table>
-
-        <br>
-
-        <table id="messageTypeTable" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
-            <thead id="typesHeaderRow" class="bg-primary text-light">
-                <th class="px-2">Name</th>
-                <th class="px-2">Text Messages</th>
-                <th class="px-2">Photos</th>
-                <th class="px-2">Videos</th>
-                <th class="px-2">Stickers</th>
-                <th class="px-2">GIFs</th>
-                <th class="px-2">Files</th>
-                <th class="px-2">Shared Links</th>
-                <th class="px-2">Audio Files</th>
-                <th class="px-2">Plans</th>
-            </thead>
-            <tbody id="messageTypesInfoTable">
-            </tbody>
-        </table>
-
-        <p style='overflow:hidden;page-break-before:always;'></p>
-        
-        <div id="chartContainer" class="text-center" style="display: inline-block;">
-
-            <hr class="my-3 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-            <div class="mda-chart" id="day-chart2"></div>
-
-            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-            <div class="mda-chart" id="month-chart"></div>
-
-            <p style='overflow:hidden;page-break-before:always;'></p>
-
-            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-            <div class="mda-chart" id="year-chart"></div>
-
-            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-            <div class="mda-chart" id="time-chart"></div>
-
-            <p style='overflow:hidden;page-break-before:always;'></p>
-
-            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-            <div class="mda-chart" id="historical-chart"></div>
-            <div>
-                <strong>Horizontal Axis  Range</strong>
-                <br>
-                Minimum: <input id="histMin" type="date" name="quantity" value="2013-10-14" class="form-control w-25 d-inline-block" oninput="histChangeXAxisBounds()">
-                Maximum: <input id="histMax" type="date" name="quantity" value="2018-10-14" class="form-control w-25 d-inline-block" oninput="histChangeXAxisBounds()">
-                <button type="button" id="resetHistRange" class="btn btn-primary" onclick="resetHistRange();">Reset to default</button>
-            </div>
-
-            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-            <div class="mda-chart" id="messageLength-chart"></div>
-            <div>
-                <strong>Horizontal Axis Range</strong>
-                <br>
-                Minimum: <input id="msgLengthMin" type="number" name="quantity" value="0" class="form-control w-25 d-inline-block" oninput="msgLengthChangeXAxisBounds()">
-                Maximum: <input id="msgLengthMax" type="number" name="quantity" value="1" class="form-control w-25 d-inline-block" oninput="msgLengthChangeXAxisBounds()">
-                <button type="button" id="resetMsgLengthRange" class="btn btn-primary" onclick="resetMsgLengthRange();">Reset to default</button>
-                <br>
-                <small>To get a clearer view for message lengths that are less frequent, try setting graph display to '100% stacked'</small>
-                <br>
-                <p id="messageLengthInfo"></p>
-            </div>
-
-            <p style='overflow:hidden;page-break-before:always;'></p>
-
-            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-            <div class="mda-chart" id="word-chart"></div>
-            <p>Want to see more interesting word frequency results? Try <a href="#wordSearchRange">setting limits on the minimum and maximum word length</a>.</p>
-            <hr class="my-4 w-75" style="border-width: 7px; border-color:#4285F4; background-color:#4285F4;">
-            <p>Unfortunately due to limitations in the Google Charts API, I cannot put the emoji images in the labels of the graph. What you see below is the best compromise I could come up with.</p>
-
-            <div class="mda-chart" id="emoji-chart"></div>
-            <br>
-            
-            <p style='overflow:hidden;page-break-before:always;'></p>
-
-            <table id="emojiTable" class="table-sm table-striped table-bordered text-center" style="margin: auto!important;">
-                <thead class="bg-primary text-light">
-                    <tr id="emojiTableHead">
-                        <th class="px-2">Rank</th>
-                        <th class="px-2">Emoji</th>
-                    </tr>
-                </thead>
-                <tbody id="emojiTableBody">
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <footer class="container d-block">
-        Created by Eric M 2018 || <a href="https://github.com/EricEzaM/EricEzaM.github.io">GitHub Source</a> || <a href="mailto:messengerdata.site@gmail.com">messengerdata.site@gmail.com</a> || Emoji icons provided free by <a href="https://www.emojione.com/">EmojiOne</a>
+    <footer class="container d-block mt-5">
+        Created by Eric M 2019 || <a href="https://github.com/EricEzaM/EricEzaM.github.io">GitHub Source</a> || <a href="mailto:messengerdata.site@gmail.com">messengerdata.site@gmail.com</a></a>
     </footer>
 </body>
 
@@ -313,6 +272,7 @@
 <script src="https://cdn.jsdelivr.net/npm/google-palette@1.1.0/palette.js" integrity="sha256-5f158MWiiHKxtoGF9P+WFLMLh3bMthtMx58ayBvTF38=" crossorigin="anonymous"></script>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
+<script type="text/javascript" src="emojione.min.js"></script>
 <script type="text/javascript" src="emojiSplitter.min.js"></script>
 <script type="text/javascript" src="main.js"></script>
 

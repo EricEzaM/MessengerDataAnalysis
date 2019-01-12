@@ -12,7 +12,7 @@ img {
 }
 
 .header-intro {
-    padding: 30px 25%;
+    padding: 30px 15%;
     background-color: var(--primary);
 }
 
@@ -113,7 +113,7 @@ img {
     left: 25px;
     animation-name: bar1-anim;
     animation-delay: 0.5s;
-    animation-duration: 6s;
+    animation-duration: 8s;
     animation-iteration-count: infinite;
 }
 
@@ -145,7 +145,7 @@ img {
     left: 75px;
     animation-name: bar2-anim;
     animation-delay: 0.5s;
-    animation-duration: 6s;
+    animation-duration: 8s;
     animation-iteration-count: infinite;
 }
 
@@ -177,7 +177,7 @@ img {
     right: 75px;
     animation-name: bar3-anim;
     animation-delay: 0.5s;
-    animation-duration: 6s;
+    animation-duration: 8s;
     animation-iteration-count: infinite;
 }
 
@@ -209,7 +209,7 @@ img {
     right: 25px;
     animation-name: bar4-anim;
     animation-delay: 0.5s;
-    animation-duration: 6s;
+    animation-duration: 8s;
     animation-iteration-count: infinite;
 }
 
@@ -303,4 +303,16 @@ img {
 .w-05{
     width: 5%;
     min-width: 70px;
+}
+
+.google-visualization-table .gradient{
+    background-image: initial !important;
+}
+
+#WordsSent-dashboard{
+    margin: 1rem;
+}
+
+#EmojisSent-dashboard{
+    margin: 1rem;
 }
