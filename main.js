@@ -60,20 +60,9 @@ var timeSubData = ["Day", "Month", "Year", "Time", "Fulldate"];
 // ~~~~~ Events
 
 startDemo.addEventListener("click", function () {
-    var fr = new FileReader();
-
-    fr.onload = function () {
-        var InputJSON = JSON.parse(this.result);
-
-        AnalyseConversation(InputJSON);
-    }
-
     fetch("./files/demofile.json") 
         .then(function(response) {
-            return response.json();
-        })
-        .then(function (data) {
-            fr.readAsText(data);
+            AnalyseConversation(response.json());
         })
         .catch(function() {
             // This is where you run code if the server returns any errors
