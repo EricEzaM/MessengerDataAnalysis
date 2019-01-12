@@ -56,6 +56,57 @@ var LatiniseString = Object.keys(latin_map).join('');
 var mainDataCategories = ["TimeData", "MessageLengths", "WordsSent", "EmojisSent"];
 var timeSubData = ["Day", "Month", "Year", "Time", "Fulldate"];
 
+
+// ~~~~~ Events
+
+startDemo.addEventListener("click", function () {
+    var fr = new FileReader();
+
+    fr.onload = function () {
+        var InputJSON = JSON.parse(this.result);
+
+        AnalyseConversation(InputJSON);
+    }
+
+    fetch("./files/demofile.json") 
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function (data) {
+            fr.readAsText(data);
+        })
+        .catch(function() {
+            // This is where you run code if the server returns any errors
+            console.log("Oops! Didn't get demo file.")
+        });
+});
+
+// Listener for "start"
+submitButton.addEventListener("click", function () {
+    var fr = new FileReader();
+
+    fr.onload = function () {
+        var InputJSON = JSON.parse(this.result)
+
+        AnalyseConversation(InputJSON);
+    }
+    fr.readAsText(selectedFile.files[0])
+
+    // Change status displays
+    statusDisplay.analysing.removeAttribute("hidden");
+    statusDisplay.complete.setAttribute("hidden", true);
+});
+
+// Listener for selecting file - display file name, turn green
+selectedFile.addEventListener("change", function () {
+    ChangeFileSelectLabel();
+});
+
+// Listener for clicking the link to show the backup emoji table.
+showEmojiImageTable.addEventListener("click", function() {
+    document.getElementById("emoji-image-table").removeAttribute("hidden");
+});
+
 // Div Generation
 
 BuildChartDivs();
@@ -308,53 +359,6 @@ function InsertMessageLengthChartOptions() {
         ChartData("MessageLengths", null);
     });
 }
-
-// ~~~~~ Events
-
-startDemo.addEventListener("click", function () {
-    var fr = new FileReader();
-
-    fr.onload = function () {
-        var InputJSON = JSON.parse(this.result);
-
-        AnalyseConversation(InputJSON);
-    }
-
-    fetch("./files/demofile.json") 
-        .then(function(data) {
-            fr.readAsText(data);
-        })
-        .catch(function() {
-            // This is where you run code if the server returns any errors
-            console.log("Oops! Didn't get demo file.")
-        });
-});
-
-// Listener for "start"
-submitButton.addEventListener("click", function () {
-    var fr = new FileReader();
-
-    fr.onload = function () {
-        var InputJSON = JSON.parse(this.result)
-
-        AnalyseConversation(InputJSON);
-    }
-    fr.readAsText(selectedFile.files[0])
-
-    // Change status displays
-    statusDisplay.analysing.removeAttribute("hidden");
-    statusDisplay.complete.setAttribute("hidden", true);
-});
-
-// Listener for selecting file - display file name, turn green
-selectedFile.addEventListener("change", function () {
-    ChangeFileSelectLabel();
-});
-
-// Listener for clicking the link to show the backup emoji table.
-showEmojiImageTable.addEventListener("click", function() {
-    document.getElementById("emoji-image-table").removeAttribute("hidden");
-});
 
 // ~~~~~
 
