@@ -868,6 +868,7 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
                     break;
 
                 case "EmojisSent":
+                    emojisDisplay = 20;
                     // If words availables is less than emojisDisplay, show that many
                     if (view.getNumberOfRows() < emojisDisplay) {
                         view.setRows([...Array(view.getNumberOfRows()).keys()]);
@@ -1300,6 +1301,10 @@ function CreateParticipantWordInfoTable(){
 };
 
 function CreateEmojisImageTable(view) {
+    var emojisImagesHead = document.getElementById("emoji-image-table-head");
+    emojisImagesHead.innerHTML = `<th class="px-2">Rank</th>
+    <th class="px-2">Emoji</th>`;
+
     var emojisImagesTable = document.getElementById("emoji-image-table-body");
     emojisImagesTable.innerHTML = "";
 
@@ -1314,8 +1319,9 @@ function CreateEmojisImageTable(view) {
         var rowHTML = `<td>${index + 1}</td><td>${emojione.toImage(emoji)}</td>`;
         
         Participants.forEach(participant => {
-            var participantValue = Participants.indexOf(participant) + 1 == null ? 0 : Participants.indexOf(participant) + 1;
-            rowHTML += `<td>${view.getValue(index, participantValue)}</td>`;
+            var participantColumn = Participants.indexOf(participant) + 1
+            var participantValue = view.getValue(index, participantColumn) == null ? 0 : view.getValue(index, participantColumn)
+            rowHTML += `<td>${participantValue}</td>`;
         });
 
         emojisImagesTable.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`);   
