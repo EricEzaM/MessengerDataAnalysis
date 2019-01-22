@@ -946,12 +946,20 @@ function ChartData(mainData, subData = null, optionsOverride = null) {
         }
     }
 
+    // When the user makes a change to one of the options, the chart should
+    // update with the same column type. This gets the column chart options
+    // and adds it to the options.
+    var columnOptions = CheckChartColumnOptions(mainData, subData)
+    for (var attribute in columnOptions) {
+        options[attribute] = columnOptions[attribute];
+    }
+
     var chartTitle = GetChartTitle(mainData, subData);
-    var titleTags;
+    var titleDiv;
     if (subData) {
-        titleTags = document.getElementById(`container-${mainData}-${subData}`).querySelector(".chart-title").innerHTML = chartTitle;
+        titleDiv = document.getElementById(`container-${mainData}-${subData}`).querySelector(".chart-title").innerHTML = chartTitle;
     } else {
-        titleTags = document.getElementById(`container-${mainData}`).querySelector(".chart-title").innerHTML = chartTitle;
+        titleDiv = document.getElementById(`container-${mainData}`).querySelector(".chart-title").innerHTML = chartTitle;
     }
 
     // Instantiate and draw chart, passing in the options.
@@ -1140,6 +1148,7 @@ function GetChartOptions(mainData, subData, colours) {
                 options.hAxis.format = 'h a'
                 options.hAxis.minValue = new Date(new Date(2018, 1, 1).setHours(0, 0, 0, 0));
                 options.hAxis.maxValue = new Date(new Date(2018, 1, 1).setHours(23, 59, 0, 0));
+                options.hAxis.title  = "Time of Day";
                 return options;
             case "Fulldate":
                 return options;
@@ -1154,6 +1163,7 @@ function GetChartOptions(mainData, subData, colours) {
                     min: 0,
                     max: messageLengthsDisplay
                 };
+                options.hAxis.title  = "Message Length";
                 return options;
 
             case "WordsSent":
@@ -1392,3 +1402,37 @@ function ChangeFileSelectLabel() {
     document.getElementById("open-file-label").innerText = selectedFile.files[0].name;
     document.getElementById("open-file-label").classList.add("text-success");
 };
+
+function CheckChartColumnOptions(mainData, subData) {
+    var optionsOverride = {}
+    if (subData) {
+        const containerName = "container-" + mainData + "-" + subData;
+        const activeButton = document.getElementById(containerName).querySelector(".active");
+
+        if (activeButton.classList.contains("btn-normal-cols")) {
+            optionsOverride.isStacked = false;
+        }
+        else if (activeButton.classList.contains("btn-stacked-cols")) {
+            optionsOverride.isStacked = true;
+        }
+        else if (activeButton.classList.contains("btn-100-cols")) {
+            optionsOverride.isStacked = 'percent';
+        }
+    }
+    else{
+        const containerName = "container-" + mainData;
+        const activeButton = document.getElementById(containerName).querySelector(".active");
+
+        if (activeButton.classList.contains("btn-normal-cols")) {
+            optionsOverride.isStacked = false;
+        }
+        else if (activeButton.classList.contains("btn-stacked-cols")) {
+            optionsOverride.isStacked = true;
+        }
+        else if (activeButton.classList.contains("btn-100-cols")) {
+            optionsOverride.isStacked = 'percent';
+        }
+    }
+
+    return optionsOverride;
+}
