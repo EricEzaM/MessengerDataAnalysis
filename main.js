@@ -62,10 +62,17 @@ var timeSubData = ["Day", "Month", "Year", "Time", "Fulldate"];
 startDemo.addEventListener("click", function () {
     fetch("./files/demofile.json") 
         .then(function(response) {
-            return response.json();
+            return response.text();
         })
-        .then(function (demofileJson) {
-            AnalyseConversation(demofileJson);
+        .then(function (fileText) {
+            var fileJson = JSON.parse(fileText, (key, value) => {
+                if (key === "participants") {
+                    return value.map(p => p.name)
+                }
+    
+                return value;
+            });
+            AnalyseConversation(fileJson);
         })
         .catch(function() {
             // This is where you run code if the server returns any errors
