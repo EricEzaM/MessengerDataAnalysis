@@ -1,13 +1,13 @@
 // _functionName = nested function
 
-console.log("Last Updated 26-12-2018")
+console.log("Last Updated 11-08-2022")
 
 google.charts.load('current', {packages: ['corechart']});
 google.charts.load('current', {'packages':['corechart', 'controls']});
 google.charts.setOnLoadCallback(EnableSubmitButton);
 
 var submitButton = document.getElementById("submit-file"); // submit button
-var selectedFile = document.getElementById("open-file"); // choose file button
+var selectedFiles = document.getElementById("open-file"); // choose file button
 var startDemo = document.getElementById("start-demo-file"); // submit button
 var showEmojiImageTable = document.getElementById("emoji-table-replace");
 
@@ -73,16 +73,56 @@ startDemo.addEventListener("click", function () {
         });
 });
 
+var conversationParts = []
+
+function extendConversationPart(part1, part2) {
+    if (part1.title === "") {
+        part1.title = part2.title
+    }
+
+    if (part1.thread_type === "") {
+        part1.thread_type = part2.thread_type
+    }
+
+    part1.messages.push(...part2.messages)
+
+    for (const name of part2.participants) {
+        if (!part1.participants.includes(name)) {
+            part1.participants.push(name)
+        }
+    }
+
+    return part1;
+}
+
+function readFile(index) {
+    if (index > selectedFiles.files.length - 1) {
+        let conv = conversationParts.reduce((acc, part) => extendConversationPart(acc, part))
+        AnalyseConversation(conv)
+        return;
+    }
+
+    let fr = new FileReader();
+    fr.onload = function () {
+        var fileJson = JSON.parse(this.result, (key, value) => {
+            if (key === "participants") {
+                return value.map(p => p.name)
+            }
+
+            return value;
+        });
+
+        conversationParts.push(fileJson);
+
+        readFile(index + 1);
+    }
+
+    fr.readAsText(selectedFiles.files[index])
+}
+
 // Listener for "start"
 submitButton.addEventListener("click", function () {
-    var fr = new FileReader();
-
-    fr.onload = function () {
-        var InputJSON = JSON.parse(this.result)
-
-        AnalyseConversation(InputJSON);
-    }
-    fr.readAsText(selectedFile.files[0])
+    readFile(0)
 
     // Change status displays
     statusDisplay.analysing.removeAttribute("hidden");
@@ -90,7 +130,7 @@ submitButton.addEventListener("click", function () {
 });
 
 // Listener for selecting file - display file name, turn green
-selectedFile.addEventListener("change", function () {
+selectedFiles.addEventListener("change", function () {
     ChangeFileSelectLabel();
 });
 
@@ -512,32 +552,16 @@ function AnalyseConversation(inputJSON) {
 function InitialiseConversation(participants) {
     InitaliseParticipant("ConversationTotals");
 
-    // For tracking people with the same name, even when _# is added to
-    // the participants list.
-    var participantNameTracker = []
-
     participants.forEach(participant => {
-
-        // Initialise participants, but if their name already exists in the
-        // Conversation, adjust it
-        if (participantNameTracker.includes(participant.name)) {
-            // Number of occurnces of that name
-            var occurrences = participantNameTracker
-                .filter(name => name === participant.name).length
-
-            InitaliseParticipant(participant.name + "-" + occurrences)
-        }
-        else {
-            InitaliseParticipant(participant.name)
-        }
-
-        participantNameTracker.push(participant.name)
+        // TODO: handle multiple people with same name?
+        // Basically impossible, in the files there is only "name"
+        // with no user id or other unique identifier.
+        InitaliseParticipant(participant)
     });
 }
 
 function InitaliseParticipant(participantName) {
     Participants.push(participantName);
-
     Conversation[participantName] = {};
     Conversation[participantName]["MessagesSentCount"] = 0;
     Conversation[participantName]["TimeData"] = {};
@@ -1399,7 +1423,7 @@ function SumObjectValues( obj ) {
 };
 
 function ChangeFileSelectLabel() {
-    document.getElementById("open-file-label").innerText = selectedFile.files[0].name;
+    document.getElementById("open-file-label").innerText = `${selectedFiles.files.length} Files`;
     document.getElementById("open-file-label").classList.add("text-success");
 };
 
